@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, MessageCircle } from "lucide-react"
+import { ChevronLeft, MessageCircle, Trash2, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +29,13 @@ const statusLabels: Record<ProformaStatus, string> = {
   PENDIENTE: "Pendiente",
   COTIZADA: "Cotizada",
   ENVIADA: "Enviada",
+}
+
+// Muestra hasta 4 decimales (para materiales de centavos, ej. $0.017) sin
+// arrastrar ceros de más; los montos "redondos" se ven con los 2 decimales de siempre.
+function fmtPrice(n: number) {
+  const trimmed = n.toFixed(4).replace(/(\.\d{2}\d*?)0+$/, "$1").replace(/\.$/, "")
+  return `$ ${trimmed}`
 }
 
 export default function AdminProformaDetailPage() {
@@ -76,6 +83,34 @@ export default function AdminProformaDetailPage() {
       alert("Error al actualizar la proforma")
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function updateItemPrice(itemId: string, unitPrice: string) {
+    const parsed = unitPrice.trim() === "" ? null : parseFloat(unitPrice)
+    try {
+      const res = await fetch(`/api/admin/proformas/${id}/items/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitPrice: parsed !== null && Number.isNaN(parsed) ? null : parsed }),
+      })
+      if (!res.ok) throw new Error("Failed")
+      await loadProforma()
+    } catch (err) {
+      alert("Error al actualizar el precio del material")
+    }
+  }
+
+  async function removeItem(itemId: string) {
+    if (!confirm("¿Quitar este material de la proforma?")) return
+    try {
+      const res = await fetch(`/api/admin/proformas/${id}/items/${itemId}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("Failed")
+      await loadProforma()
+    } catch (err) {
+      alert("Error al quitar el material")
     }
   }
 
@@ -142,6 +177,9 @@ export default function AdminProformaDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Materiales</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            El precio se puede ajustar solo para esta proforma; no afecta el precio del material en la calculadora.
+          </p>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -151,6 +189,7 @@ export default function AdminProformaDetailPage() {
                 <TableHead>Cantidad</TableHead>
                 <TableHead className="text-right">P. Unitario</TableHead>
                 <TableHead className="text-right">Total</TableHead>
+                <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,11 +199,33 @@ export default function AdminProformaDetailPage() {
                   <TableCell className="font-mono text-sm">
                     {item.quantity} {item.unit}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-sm">
-                    {item.unitPrice != null ? `$ ${item.unitPrice.toFixed(2)}` : "—"}
+                  <TableCell className="text-right">
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      defaultValue={item.unitPrice ?? ""}
+                      placeholder="—"
+                      className="w-24 ml-auto text-right font-mono text-sm h-8"
+                      onBlur={(e) => {
+                        if (e.target.value !== String(item.unitPrice ?? "")) {
+                          updateItemPrice(item.id, e.target.value)
+                        }
+                      }}
+                    />
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm">
-                    {item.total != null ? `$ ${item.total.toFixed(2)}` : "—"}
+                    {item.total != null ? fmtPrice(item.total) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                      onClick={() => removeItem(item.id)}
+                      aria-label={`Quitar ${item.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -175,6 +236,7 @@ export default function AdminProformaDetailPage() {
                 <TableCell className="text-right font-mono font-bold text-sm">
                   $ {(proforma.total ?? 0).toFixed(2)}
                 </TableCell>
+                <TableCell />
               </TableRow>
             </TableBody>
           </Table>
@@ -213,7 +275,7 @@ export default function AdminProformaDetailPage() {
               />
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
               disabled={saving}
@@ -222,12 +284,26 @@ export default function AdminProformaDetailPage() {
               Guardar contacto
             </Button>
             <Button
+              variant="outline"
+              onClick={() => window.open(`/api/admin/proformas/${id}/pdf`, "_blank")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Generar Proforma (PDF)
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open(`/api/admin/proformas/${id}/pdf?download=1`, "_blank")}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
+            </Button>
+            <Button
               className="bg-[#25D366] hover:bg-[#1aad54]"
               disabled={!contactPhone}
               onClick={handleSendWhatsApp}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
-              Enviar proforma
+              Enviar proforma por WhatsApp
             </Button>
           </div>
         </CardContent>

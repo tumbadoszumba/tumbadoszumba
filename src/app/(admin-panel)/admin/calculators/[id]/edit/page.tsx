@@ -273,10 +273,10 @@ export default function EditCalculatorPage() {
                   </label>
                   <Input
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     value={material.unitPrice ?? ''}
                     onChange={(e) => updateMaterial(index, 'unitPrice', e.target.value)}
-                    placeholder="Ej: 8.50"
+                    placeholder="Ej: 8.50 o 0.017"
                     className="mt-1"
                   />
                 </div>

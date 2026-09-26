@@ -97,6 +97,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
       contactPhone: proforma.contactPhone,
     })
   } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code: string }).code === "P2025"
+    ) {
+      return NextResponse.json({ error: "Proforma no encontrada" }, { status: 404 })
+    }
     console.error("Error updating proforma:", error)
     return NextResponse.json(
       { error: "Error al actualizar la proforma" },

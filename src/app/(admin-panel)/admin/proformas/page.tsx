@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Search, FileText, RefreshCcw, Phone } from "lucide-react"
@@ -32,6 +32,14 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 }
 
 export default function AdminProformasPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminProformasContent />
+    </Suspense>
+  )
+}
+
+function AdminProformasContent() {
   const searchParams = useSearchParams()
   const userIdParam = searchParams.get("userId") || undefined
 

@@ -254,6 +254,7 @@ model Proforma {
   area         Decimal        @db.Decimal(10, 2)
   contactName  String?
   contactPhone String?
+  contactEmail String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 

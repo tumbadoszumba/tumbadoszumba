@@ -90,6 +90,7 @@ export interface Proforma {
   area: number
   contactName?: string | null
   contactPhone?: string | null
+  contactEmail?: string | null
   createdAt: string
   calculator: { id: string; name: string }
   items: ProformaItem[]

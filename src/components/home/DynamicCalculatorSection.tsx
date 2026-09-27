@@ -15,23 +15,89 @@ const WA_NUMBER = "593990099265"
 const ceil = (x: number) => Math.ceil(x - 1e-9)
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
 
-const SYSTEM_TABS = [
-  { key: "gypsum", label: "Gypsum" },
-  { key: "tumbados", label: "Tumbados" },
+const PLANCHA_TABS = [
+  { key: "normal", label: "Normal", displayName: "Plancha de Yeso Estándar (ST)", unitPrice: 10.75 },
+  { key: "rh", label: "RH", displayName: "Plancha de Yeso RH (Resist. Humedad)", unitPrice: 15 },
 ] as const
 
-type SystemTabKey = (typeof SYSTEM_TABS)[number]["key"]
+const APPLICATION_TABS = [
+  { key: "pared", label: "Pared" },
+  { key: "tumbado", label: "Tumbado" },
+] as const
+
+type PlanchaTabKey = (typeof PLANCHA_TABS)[number]["key"]
+type ApplicationTabKey = (typeof APPLICATION_TABS)[number]["key"]
+
+const SYSTEM_LABELS: Record<string, string> = {
+  "gypsum-pared-tumbado": "Gypsum",
+  "cielo-raso-120x60": "Cielo Raso 1.20×60",
+  "cielo-raso-60x60": "Cielo Raso 60×60",
+}
+
+function getSystemLabel(calc: Calculator): string {
+  return SYSTEM_LABELS[calc.slug] ?? calc.name
+}
+
+function isGypsumCalc(calc: Calculator | undefined): boolean {
+  return !!calc && calc.slug.includes("gypsum")
+}
+
+interface SegmentedToggleProps<T extends string> {
+  label: string
+  options: readonly { key: T; label: string }[]
+  value: T
+  onChange: (value: T) => void
+}
+
+function SegmentedToggle<T extends string>({ label, options, value, onChange }: SegmentedToggleProps<T>) {
+  const activeIndex = options.findIndex((o) => o.key === value)
+  return (
+    <div>
+      <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
+        {label}
+      </label>
+      <div
+        className="relative flex p-1"
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <motion.div
+          className="absolute inset-y-1 rounded-sm"
+          style={{ width: `calc(${100 / options.length}% - 4px)`, background: "#fff" }}
+          animate={{ left: `calc(${(activeIndex * 100) / options.length}% + 4px)` }}
+          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+        />
+        {options.map((option) => (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => onChange(option.key)}
+            className="relative z-10 flex-1 py-2 text-xs font-bold uppercase tracking-wide transition-colors"
+            style={{ color: value === option.key ? "#0d1a35" : "rgba(255,255,255,0.65)" }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 interface MaterialItem {
   materialId: string
   name: string
   qty: number
   unit: string
+  unitPriceOverride?: number
 }
 
 const contactSchema = z.object({
   contactName: z.string().trim().optional(),
   contactPhone: z.string().trim().optional(),
+  contactEmail: z.string().trim().email("Correo inválido").optional().or(z.literal("")),
 })
 
 type ContactForm = z.infer<typeof contactSchema>
@@ -89,7 +155,8 @@ export function DynamicCalculatorSection() {
   const [calculators, setCalculators] = useState<Calculator[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCalcId, setSelectedCalcId] = useState<string>("")
-  const [activeTab, setActiveTab] = useState<SystemTabKey>("gypsum")
+  const [planchaType, setPlanchaType] = useState<PlanchaTabKey>("normal")
+  const [applicationType, setApplicationType] = useState<ApplicationTabKey>("pared")
   const [area, setArea] = useState("32")
   const [showResults, setShowResults] = useState(false)
   const [results, setResults] = useState<MaterialItem[]>([])
@@ -101,8 +168,17 @@ export function DynamicCalculatorSection() {
     reset: resetContactForm,
   } = useForm<ContactForm>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { contactName: "", contactPhone: "" },
+    defaultValues: { contactName: "", contactPhone: "", contactEmail: "" },
   })
+
+  useEffect(() => {
+    if (!showResults) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [showResults])
 
   useEffect(() => {
     loadCalculators()
@@ -113,6 +189,7 @@ export function DynamicCalculatorSection() {
       resetContactForm({
         contactName: session.user.name || "",
         contactPhone: session.user.phone || "",
+        contactEmail: session.user.email || "",
       })
     }
   }, [session, resetContactForm])
@@ -124,7 +201,10 @@ export function DynamicCalculatorSection() {
         const data = await res.json()
         setCalculators(data)
         if (data.length > 0) {
-          setSelectedCalcId(data[0].id)
+          // Por defecto arranca en Gypsum; el usuario puede cambiar de sistema
+          // con el selector.
+          const gypsum = data.find((c: Calculator) => c.slug.includes("gypsum"))
+          setSelectedCalcId((gypsum ?? data[0]).id)
         }
       }
     } catch (err) {
@@ -132,6 +212,14 @@ export function DynamicCalculatorSection() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function resolvePlancha(name: string, calc: Calculator): { name: string; unitPriceOverride?: number } {
+    if (!isGypsumCalc(calc) || !/^planchas?$/i.test(name.trim())) {
+      return { name }
+    }
+    const tab = PLANCHA_TABS.find((p) => p.key === planchaType)!
+    return { name: tab.displayName, unitPriceOverride: tab.unitPrice }
   }
 
   function handleCalc() {
@@ -156,7 +244,7 @@ export function DynamicCalculatorSection() {
 
     const items: MaterialItem[] = calculator.materials.map(mat => ({
       materialId: mat.id,
-      name: mat.name,
+      ...resolvePlancha(mat.name, calculator),
       qty: ceil(areaNum * mat.yield),
       unit: mat.unit
     }))
@@ -179,7 +267,7 @@ export function DynamicCalculatorSection() {
 
     const items: MaterialItem[] = calculator.materials.map(mat => ({
       materialId: mat.id,
-      name: mat.name,
+      ...resolvePlancha(mat.name, calculator),
       qty: ceil(areaNum * mat.yield),
       unit: mat.unit
     }))
@@ -206,9 +294,12 @@ export function DynamicCalculatorSection() {
           area: parseFloat(area),
           contactName: data.contactName || null,
           contactPhone: data.contactPhone || null,
+          contactEmail: data.contactEmail || null,
           items: results.map(item => ({
             materialId: item.materialId,
             quantity: item.qty,
+            nameOverride: item.name,
+            unitPriceOverride: item.unitPriceOverride,
           })),
         }),
       })
@@ -222,10 +313,14 @@ export function DynamicCalculatorSection() {
       .map(item => `• ${item.name}: *${fmt(item.qty)} ${item.unit}*`)
       .join("\n")
 
+    const systemDetail = isGypsumCalc(calculator)
+      ? ` (${APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha ${PLANCHA_TABS.find((p) => p.key === planchaType)!.label})`
+      : ""
+
     const msg = encodeURIComponent(
       `🏗️ *Solicitud de Proforma - TumbadosZumba*\n\n` +
       `👤 *Cliente:* ${data.contactName?.trim() || session?.user?.name || "Sin nombre"}\n` +
-      `📐 *Sistema:* ${calculator.name}\n` +
+      `📐 *Sistema:* ${calculator.name}${systemDetail}\n` +
       `📏 *Área:* ${fmt(parseFloat(area))} m²\n\n` +
       `📦 *Materiales (${results.length}):*\n${itemsList}\n\n` +
       `Por favor cotizar. ¡Gracias! 🙏`
@@ -279,7 +374,7 @@ export function DynamicCalculatorSection() {
             </div>
             <div>
               <h3 className="text-sm font-extrabold leading-none text-white tracking-wide">
-                Calculadora de Materiales
+                Calculadora de materiales{selectedCalc ? ` para ${getSystemLabel(selectedCalc)}` : ""}
               </h3>
               <p className="text-[11px] mt-1 font-medium" style={{ color: "rgba(180,200,255,0.8)" }}>
                 Cotiza tus materiales al instante
@@ -292,40 +387,54 @@ export function DynamicCalculatorSection() {
 
           {/* Campos */}
           <div className="flex flex-col gap-3">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
-                Sistema constructivo
-              </label>
-              <div
-                className="relative flex p-1"
-                style={{
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                <motion.div
-                  className="absolute inset-y-1 rounded-sm"
-                  style={{ width: "calc(50% - 4px)", background: "#fff" }}
-                  animate={{ left: activeTab === "gypsum" ? 4 : "calc(50% + 0px)" }}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-                {SYSTEM_TABS.map((tab) => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(tab.key)
-                      if (calculators.length > 0) setSelectedCalcId(calculators[0].id)
+            {calculators.length > 1 && (
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
+                  Sistema
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedCalcId}
+                    onChange={(e) => setSelectedCalcId(e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm text-white focus:outline-none cursor-pointer appearance-none pr-8"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      backdropFilter: "blur(8px)",
                     }}
-                    className="relative z-10 flex-1 py-2 text-xs font-bold uppercase tracking-wide transition-colors"
-                    style={{ color: activeTab === tab.key ? "#0d1a35" : "rgba(255,255,255,0.65)" }}
                   >
-                    {tab.label}
-                  </button>
-                ))}
+                    {calculators.map((c) => (
+                      <option key={c.id} value={c.id} style={{ color: "#111", background: "#fff" }}>
+                        {getSystemLabel(c)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 4l4 4 4-4" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {isGypsumCalc(selectedCalc) && (
+              <>
+                <SegmentedToggle
+                  label="Tipo de plancha"
+                  options={PLANCHA_TABS}
+                  value={planchaType}
+                  onChange={setPlanchaType}
+                />
+
+                <SegmentedToggle
+                  label="Aplicación"
+                  options={APPLICATION_TABS}
+                  value={applicationType}
+                  onChange={setApplicationType}
+                />
+              </>
+            )}
 
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
@@ -377,7 +486,7 @@ export function DynamicCalculatorSection() {
       </AnimatePresence>
 
       {showResults && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(2,4,15,0.88)", backdropFilter: "blur(8px)" }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(2,4,15,0.88)", backdropFilter: "blur(8px)" }}>
           <div
             className="w-full overflow-hidden"
             style={{
@@ -402,13 +511,21 @@ export function DynamicCalculatorSection() {
                   </div>
                   <div>
                     <h3 className="text-sm font-extrabold text-white leading-tight">{selectedCalc?.name}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span
                         className="text-[11px] font-mono px-2 py-0.5"
                         style={{ background: "rgba(255,255,255,0.07)", color: "rgba(180,200,255,0.8)" }}
                       >
                         {fmt(parseFloat(area))} m²
                       </span>
+                      {isGypsumCalc(selectedCalc) && (
+                        <span
+                          className="text-[11px] font-mono px-2 py-0.5"
+                          style={{ background: "rgba(240,115,30,0.12)", color: "#F0931E" }}
+                        >
+                          {APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha {PLANCHA_TABS.find((p) => p.key === planchaType)!.label}
+                        </span>
+                      )}
                       <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
                         {results.length} {results.length === 1 ? "material" : "materiales"}
                       </span>
@@ -516,6 +633,18 @@ export function DynamicCalculatorSection() {
                 type="tel"
                 {...register("contactPhone")}
                 placeholder="Tu número de WhatsApp (opcional)"
+                className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+              />
+              <input
+                type="email"
+                {...register("contactEmail")}
+                placeholder="Tu correo (opcional)"
                 className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.05)",

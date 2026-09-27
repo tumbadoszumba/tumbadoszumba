@@ -48,6 +48,7 @@ export default function AdminProformaDetailPage() {
   const [saving, setSaving] = useState(false)
   const [contactName, setContactName] = useState("")
   const [contactPhone, setContactPhone] = useState("")
+  const [contactEmail, setContactEmail] = useState("")
 
   useEffect(() => {
     loadProforma()
@@ -61,6 +62,7 @@ export default function AdminProformaDetailPage() {
       setProforma(data)
       setContactName(data.contactName || "")
       setContactPhone(data.contactPhone || "")
+      setContactEmail(data.contactEmail || "")
     } catch (err) {
       alert("Error al cargar la proforma")
       router.back()
@@ -274,12 +276,29 @@ export default function AdminProformaDetailPage() {
                 className="mt-1"
               />
             </div>
+            <div>
+              <label className="text-sm font-medium">
+                Correo{" "}
+                {!proforma.contactEmail && (
+                  <Badge variant="outline" className="ml-1 text-muted-foreground align-middle">
+                    Correo no ingresado
+                  </Badge>
+                )}
+              </label>
+              <Input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="Ej: cliente@correo.com"
+                className="mt-1"
+              />
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
               disabled={saving}
-              onClick={() => patchProforma({ contactName, contactPhone })}
+              onClick={() => patchProforma({ contactName, contactPhone, contactEmail })}
             >
               Guardar contacto
             </Button>

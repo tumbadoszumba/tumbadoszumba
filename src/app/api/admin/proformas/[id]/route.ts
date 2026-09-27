@@ -42,6 +42,7 @@ export async function GET(_: NextRequest, { params }: { params: Params }) {
       area: Number(proforma.area),
       contactName: proforma.contactName,
       contactPhone: proforma.contactPhone,
+      contactEmail: proforma.contactEmail,
       createdAt: proforma.createdAt.toISOString(),
       user: proforma.user,
       calculator: proforma.calculator,
@@ -62,6 +63,7 @@ const updateProformaSchema = z
     status: z.enum(["PENDIENTE", "COTIZADA", "ENVIADA"]).optional(),
     contactName: z.string().trim().optional(),
     contactPhone: z.string().trim().optional(),
+    contactEmail: z.string().trim().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Debes enviar al menos un campo para actualizar",
@@ -95,6 +97,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
       status: proforma.status,
       contactName: proforma.contactName,
       contactPhone: proforma.contactPhone,
+      contactEmail: proforma.contactEmail,
     })
   } catch (error) {
     if (

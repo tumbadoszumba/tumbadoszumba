@@ -97,8 +97,8 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
 
   // Client + meta info block
   const infoLines = [
-    [`Cliente:`, proforma.user?.name || "—"],
-    [`Email:`, proforma.user?.email || "—"],
+    [`Cliente:`, proforma.contactName || proforma.user?.name || "—"],
+    [`Email:`, proforma.contactEmail || proforma.user?.email || "—"],
     [`Teléfono:`, proforma.contactPhone || proforma.user?.phone || "No ingresado"],
     [`Sistema:`, proforma.calculator.name],
     [`Área:`, `${Number(proforma.area)} m²`],

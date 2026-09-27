@@ -8,11 +8,17 @@ const createProformaSchema = z.object({
   area: z.number().positive(),
   contactName: z.string().trim().optional().nullable(),
   contactPhone: z.string().trim().optional().nullable(),
+  contactEmail: z.string().trim().email().optional().nullable(),
   items: z
     .array(
       z.object({
         materialId: z.string().min(1),
         quantity: z.number().positive(),
+        // El cliente puede pedir una variante del material (ej. plancha RH en vez
+        // de normal) con un nombre/precio distinto al que tiene guardado el material
+        // en la calculadora; si no vienen, se usa lo que ya tiene el material.
+        nameOverride: z.string().trim().min(1).optional(),
+        unitPriceOverride: z.number().positive().optional(),
       })
     )
     .min(1),
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { calculatorId, area, contactName, contactPhone, items } = parsed.data
+    const { calculatorId, area, contactName, contactPhone, contactEmail, items } = parsed.data
 
     const calculator = await prisma.calculator.findUnique({
       where: { id: calculatorId },
@@ -56,10 +62,10 @@ export async function POST(request: NextRequest) {
         const material = materialsById.get(item.materialId)
         if (!material) return null
         return {
-          name: material.name,
+          name: item.nameOverride ?? material.name,
           unit: material.unit,
           quantity: item.quantity,
-          unitPrice: material.unitPrice,
+          unitPrice: item.unitPriceOverride ?? material.unitPrice,
           materialId: material.id,
         }
       })
@@ -79,6 +85,7 @@ export async function POST(request: NextRequest) {
         area,
         contactName: contactName || null,
         contactPhone: contactPhone || null,
+        contactEmail: contactEmail || null,
         items: { create: itemsData },
       },
       include: { items: true },

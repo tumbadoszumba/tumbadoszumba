@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Calculator, CalculatorMaterial } from '@/types'
+import { ProductPickerDialog } from '@/components/admin/ProductPickerDialog'
 
 interface Material extends CalculatorMaterial {
   _isNew?: boolean
@@ -24,6 +25,7 @@ export default function EditCalculatorPage() {
   const [description, setDescription] = useState('')
   const [area, setArea] = useState('32')
   const [materials, setMaterials] = useState<Material[]>([])
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     loadCalculator()
@@ -46,10 +48,25 @@ export default function EditCalculatorPage() {
     }
   }
 
-  const addMaterial = () => {
+  const addBlankMaterial = () => {
     setMaterials([
       ...materials,
       { id: `new-${Date.now()}`, name: '', unit: '', yield: 0, position: materials.length, _isNew: true }
+    ])
+  }
+
+  const addMaterialFromProduct = (product: { name: string; price: number }) => {
+    setMaterials([
+      ...materials,
+      {
+        id: `new-${Date.now()}`,
+        name: product.name,
+        unit: '',
+        yield: 0,
+        unitPrice: product.price,
+        position: materials.length,
+        _isNew: true,
+      }
     ])
   }
 
@@ -216,12 +233,19 @@ export default function EditCalculatorPage() {
               type="button"
               size="sm"
               variant="outline"
-              onClick={addMaterial}
+              onClick={() => setPickerOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Material
             </Button>
           </div>
+
+          <ProductPickerDialog
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            onSelect={addMaterialFromProduct}
+            onAddBlank={addBlankMaterial}
+          />
 
           <div className="space-y-3">
             {materials.map((material, index) => (

@@ -15,6 +15,13 @@ const WA_NUMBER = "593990099265"
 const ceil = (x: number) => Math.ceil(x - 1e-9)
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
 
+const SYSTEM_TABS = [
+  { key: "gypsum", label: "Gypsum" },
+  { key: "tumbados", label: "Tumbados" },
+] as const
+
+type SystemTabKey = (typeof SYSTEM_TABS)[number]["key"]
+
 interface MaterialItem {
   materialId: string
   name: string
@@ -82,6 +89,7 @@ export function DynamicCalculatorSection() {
   const [calculators, setCalculators] = useState<Calculator[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCalcId, setSelectedCalcId] = useState<string>("")
+  const [activeTab, setActiveTab] = useState<SystemTabKey>("gypsum")
   const [area, setArea] = useState("32")
   const [showResults, setShowResults] = useState(false)
   const [results, setResults] = useState<MaterialItem[]>([])
@@ -288,28 +296,34 @@ export function DynamicCalculatorSection() {
               <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
                 Sistema constructivo
               </label>
-              <div className="relative">
-                <select
-                  value={selectedCalcId}
-                  onChange={(e) => setSelectedCalcId(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm text-white focus:outline-none cursor-pointer appearance-none pr-8"
-                  style={{
-                    background: "rgba(255,255,255,0.08)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    backdropFilter: "blur(8px)",
-                  }}
-                >
-                  {calculators.map((calc) => (
-                    <option key={calc.id} value={calc.id} style={{ color: "#111", background: "#fff" }}>
-                      {calc.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 4l4 4 4-4" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
+              <div
+                className="relative flex p-1"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <motion.div
+                  className="absolute inset-y-1 rounded-sm"
+                  style={{ width: "calc(50% - 4px)", background: "#fff" }}
+                  animate={{ left: activeTab === "gypsum" ? 4 : "calc(50% + 0px)" }}
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+                {SYSTEM_TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(tab.key)
+                      if (calculators.length > 0) setSelectedCalcId(calculators[0].id)
+                    }}
+                    className="relative z-10 flex-1 py-2 text-xs font-bold uppercase tracking-wide transition-colors"
+                    style={{ color: activeTab === tab.key ? "#0d1a35" : "rgba(255,255,255,0.65)" }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
+import { ProductPickerDialog } from '@/components/admin/ProductPickerDialog'
 
 interface Material {
   name: string
@@ -25,9 +26,14 @@ export default function NewCalculatorPage() {
     { name: 'Plancha', unit: 'plancha', yield: '0.35', unitPrice: '' },
     { name: 'Ángulos', unit: 'und', yield: '0.60', unitPrice: '' },
   ])
+  const [pickerOpen, setPickerOpen] = useState(false)
 
-  const addMaterial = () => {
+  const addBlankMaterial = () => {
     setMaterials([...materials, { name: '', unit: '', yield: '', unitPrice: '' }])
+  }
+
+  const addMaterialFromProduct = (product: { name: string; price: number }) => {
+    setMaterials([...materials, { name: product.name, unit: '', yield: '', unitPrice: product.price.toString() }])
   }
 
   const removeMaterial = (index: number) => {
@@ -147,12 +153,19 @@ export default function NewCalculatorPage() {
               type="button"
               size="sm"
               variant="outline"
-              onClick={addMaterial}
+              onClick={() => setPickerOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Material
             </Button>
           </div>
+
+          <ProductPickerDialog
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            onSelect={addMaterialFromProduct}
+            onAddBlank={addBlankMaterial}
+          />
 
           <div className="space-y-3">
             {materials.map((material, index) => (

@@ -74,14 +74,20 @@ export interface Calculator {
 }
 
 export type ProformaStatus = 'PENDIENTE' | 'COTIZADA' | 'ENVIADA'
+export type ProformaAdjustmentType = 'percentage' | 'fixed'
+export type ProformaAdjustmentDirection = 'increase' | 'decrease'
 
 export interface ProformaItem {
   id: string
   name: string
   unit: string
   quantity: number
+  originalQuantity?: number
   unitPrice?: number | null
+  originalUnitPrice?: number | null
+  position?: number
   total?: number
+  originalTotal?: number
 }
 
 export interface Proforma {
@@ -91,9 +97,17 @@ export interface Proforma {
   contactName?: string | null
   contactPhone?: string | null
   contactEmail?: string | null
+  contactDocument?: string | null
   createdAt: string
+  deletedAt?: string | null
+  adjustmentType?: ProformaAdjustmentType | null
+  adjustmentDirection?: ProformaAdjustmentDirection | null
+  adjustmentValue?: number | null
   calculator: { id: string; name: string }
   items: ProformaItem[]
   user?: { id: string; name: string; email: string; phone?: string | null }
+  itemsTotal?: number
+  originalTotal?: number
+  adjustmentAmount?: number
   total?: number
 }

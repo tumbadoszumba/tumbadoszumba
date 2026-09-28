@@ -63,6 +63,8 @@ interface AdminProforma {
   contactName: string | null
   contactPhone: string | null
   createdAt: string
+  deletedAt: string | null
+  daysRemaining: number | null
   user: { id: string; name: string; email: string; phone: string | null }
   calculator: { id: string; name: string }
   itemCount: number
@@ -99,6 +101,7 @@ interface AdminState {
   proformasTotal: number
   proformasPendientes: number
   proformasCotizadas: number
+  proformasTrashCount: number
 
   loading: boolean
   error: string | null
@@ -109,11 +112,14 @@ interface AdminState {
   fetchUsers: (params?: { role?: string; status?: string }) => Promise<void>
   updateUserStatus: (id: string, status: string) => Promise<void>
   updateOrderStatus: (id: string, status: string) => Promise<void>
-  fetchProformas: (params?: { status?: string; userId?: string; q?: string }) => Promise<void>
+  fetchProformas: (params?: { status?: string; userId?: string; q?: string; trash?: boolean }) => Promise<void>
   updateProforma: (
     id: string,
     patch: { status?: string; contactName?: string; contactPhone?: string }
   ) => Promise<void>
+  trashProforma: (id: string) => Promise<void>
+  restoreProforma: (id: string) => Promise<void>
+  deleteProformaPermanently: (id: string) => Promise<void>
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -127,6 +133,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   proformasTotal: 0,
   proformasPendientes: 0,
   proformasCotizadas: 0,
+  proformasTrashCount: 0,
   loading: false,
   error: null,
 
@@ -226,6 +233,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       if (params.status) searchParams.set("status", params.status)
       if (params.userId) searchParams.set("userId", params.userId)
       if (params.q) searchParams.set("q", params.q)
+      if (params.trash) searchParams.set("trash", "1")
 
       const response = await fetch(`/api/admin/proformas?${searchParams}`)
       if (!response.ok) throw new Error("Error fetching proformas")
@@ -235,6 +243,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         proformasTotal: data.total,
         proformasPendientes: data.pendientes,
         proformasCotizadas: data.cotizadas,
+        proformasTrashCount: data.trashCount,
         loading: false,
       })
     } catch (error) {
@@ -256,5 +265,23 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ error: (error as Error).message, loading: false })
       throw error
     }
+  },
+
+  trashProforma: async (id) => {
+    const response = await fetch(`/api/admin/proformas/${id}`, { method: "DELETE" })
+    if (!response.ok) throw new Error("Error moviendo la proforma a la papelera")
+    await get().fetchProformas()
+  },
+
+  restoreProforma: async (id) => {
+    const response = await fetch(`/api/admin/proformas/${id}/restore`, { method: "POST" })
+    if (!response.ok) throw new Error("Error restaurando la proforma")
+    await get().fetchProformas({ trash: true })
+  },
+
+  deleteProformaPermanently: async (id) => {
+    const response = await fetch(`/api/admin/proformas/${id}?permanent=1`, { method: "DELETE" })
+    if (!response.ok) throw new Error("Error eliminando la proforma")
+    await get().fetchProformas({ trash: true })
   },
 }))

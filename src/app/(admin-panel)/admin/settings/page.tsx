@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ThemeToggle } from "@/components/layout/ThemeToggle"
+import { Tabs,TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -37,6 +39,35 @@ export default function AdminSettingsPage() {
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Apariencia</CardTitle>
+              <CardDescription>
+                Cambia entre modo claro y oscuro
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <Label>Modo noche / dia</Label>
+              <ThemeToggle />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Usuario</CardTitle>
+              <CardDescription>Cuenta de administrador actual</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback>AD</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">Admin</p>
+                <p className="text-xs text-muted-foreground">admin@tumbadoszumba.com</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Informacion de la Tienda</CardTitle>

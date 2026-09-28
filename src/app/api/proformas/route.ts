@@ -58,15 +58,19 @@ export async function POST(request: NextRequest) {
     const materialsById = new Map(calculator.materials.map((m) => [m.id, m]))
 
     const itemsData = items
-      .map((item) => {
+      .map((item, index) => {
         const material = materialsById.get(item.materialId)
         if (!material) return null
+        const unitPrice = item.unitPriceOverride ?? material.unitPrice
         return {
           name: item.nameOverride ?? material.name,
           unit: material.unit,
           quantity: item.quantity,
-          unitPrice: item.unitPriceOverride ?? material.unitPrice,
+          originalQuantity: item.quantity,
+          unitPrice,
+          originalUnitPrice: unitPrice,
           materialId: material.id,
+          position: index,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)

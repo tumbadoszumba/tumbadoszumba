@@ -1,4 +1,5 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar"
+import { AdminHeader } from "@/components/admin/AdminHeader"
 
 export default function AdminLayout({
   children,
@@ -9,6 +10,7 @@ export default function AdminLayout({
     <div className="min-h-screen bg-muted/30">
       <AdminSidebar />
       <div className="lg:pl-64">
+        <AdminHeader />
         <main className="p-4 lg:p-6">{children}</main>
       </div>
     </div>

@@ -16,6 +16,9 @@ import {
   Store,
   Tag,
   FileText,
+  MessageSquare,
+  Calculator,
+  ImageIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -29,10 +32,13 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Mensajes", href: "/admin/messages", icon: MessageSquare, badgeKey: "messages" },
   { name: "Productos", href: "/admin/products", icon: Package },
   { name: "Categorias", href: "/admin/categories", icon: FolderTree },
   { name: "Marcas", href: "/admin/brands", icon: Tag },
+  { name: "Calculadoras", href: "/admin/calculators", icon: Calculator },
   { name: "Proformas", href: "/admin/proformas", icon: FileText },
+  { name: "Media", href: "/admin/media", icon: ImageIcon },
   { name: "Ordenes", href: "/admin/orders", icon: ShoppingCart },
   { name: "Pagos", href: "/admin/payments", icon: CreditCard },
   { name: "Usuarios", href: "/admin/users", icon: Users },
@@ -42,6 +48,14 @@ const navigation = [
 export function AdminMobileNav() {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
+  const [unreadCount, setUnreadCount] = React.useState(0)
+
+  React.useEffect(() => {
+    fetch("/api/messages?unread=true")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setUnreadCount(data.unreadCount || 0))
+      .catch(() => {})
+  }, [pathname])
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -80,7 +94,12 @@ export function AdminMobileNav() {
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                {item.name}
+                <span className="flex-1">{item.name}</span>
+                {item.badgeKey === "messages" && unreadCount > 0 && (
+                  <span className="inline-flex items-center justify-center size-5 text-[11px] font-bold rounded-full bg-brand-orange text-white">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             )
           })}

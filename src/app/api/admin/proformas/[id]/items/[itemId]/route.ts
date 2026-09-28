@@ -5,9 +5,14 @@ import { auth } from "@/lib/auth"
 
 type Params = Promise<{ id: string; itemId: string }>
 
-const updateItemSchema = z.object({
-  unitPrice: z.number().nonnegative().nullable(),
-})
+const updateItemSchema = z
+  .object({
+    unitPrice: z.number().nonnegative().nullable().optional(),
+    quantity: z.number().positive().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Debes enviar al menos un campo para actualizar",
+  })
 
 export async function PATCH(request: NextRequest, { params }: { params: Params }) {
   const session = await auth()
@@ -37,12 +42,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
 
     const item = await prisma.proformaItem.update({
       where: { id: itemId },
-      data: { unitPrice: parsed.data.unitPrice },
+      data: parsed.data,
     })
 
     return NextResponse.json({
       id: item.id,
+      quantity: Number(item.quantity),
       unitPrice: item.unitPrice != null ? Number(item.unitPrice) : null,
+      originalUnitPrice: item.originalUnitPrice != null ? Number(item.originalUnitPrice) : null,
     })
   } catch (error) {
     console.error("Error updating proforma item:", error)

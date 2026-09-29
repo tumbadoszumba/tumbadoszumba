@@ -18,24 +18,35 @@ export async function POST(request: NextRequest, { params }: { params: Params })
   }
 
   const { id: branchId } = await params
-  const branch = await prisma.branch.findUnique({ where: { id: branchId } })
-  if (!branch) {
-    return NextResponse.json({ error: "Local no encontrado" }, { status: 404 })
-  }
 
-  const body = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Cuerpo de la solicitud inválido" }, { status: 400 })
+  }
   const parsed = createSellerSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const pinHash = await hashPin(parsed.data.pin)
-  const seller = await prisma.seller.create({
-    data: { name: parsed.data.name, pinHash, branchId },
-  })
+  try {
+    const branch = await prisma.branch.findUnique({ where: { id: branchId } })
+    if (!branch) {
+      return NextResponse.json({ error: "Local no encontrado" }, { status: 404 })
+    }
 
-  return NextResponse.json(
-    { id: seller.id, name: seller.name, active: seller.active, branchId: seller.branchId },
-    { status: 201 }
-  )
+    const pinHash = await hashPin(parsed.data.pin)
+    const seller = await prisma.seller.create({
+      data: { name: parsed.data.name, pinHash, branchId },
+    })
+
+    return NextResponse.json(
+      { id: seller.id, name: seller.name, active: seller.active, branchId: seller.branchId },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error("Error creating seller:", error)
+    return NextResponse.json({ error: "Error al crear el vendedor" }, { status: 500 })
+  }
 }

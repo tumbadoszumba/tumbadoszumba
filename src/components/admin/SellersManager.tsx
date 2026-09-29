@@ -22,12 +22,21 @@ export function SellersManager() {
   const [newSeller, setNewSeller] = useState<Record<string, { name: string; pin: string }>>({})
   const [savingSeller, setSavingSeller] = useState<string | null>(null)
   const [lastCreatedPin, setLastCreatedPin] = useState<{ sellerName: string; pin: string } | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   async function loadBranches() {
     setLoading(true)
+    setLoadError(null)
     try {
       const res = await fetch("/api/admin/branches")
-      if (res.ok) setBranches(await res.json())
+      if (res.ok) {
+        setBranches(await res.json())
+      } else {
+        const data = await res.json().catch(() => null)
+        setLoadError(data?.error || "No se pudieron cargar los locales")
+      }
+    } catch {
+      setLoadError("No se pudo conectar con el servidor.")
     } finally {
       setLoading(false)
     }
@@ -53,6 +62,8 @@ export function SellersManager() {
       }
       setNewBranch({ name: "", phone: "", address: "" })
       await loadBranches()
+    } catch {
+      alert("No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.")
     } finally {
       setSavingBranch(false)
     }
@@ -60,17 +71,34 @@ export function SellersManager() {
 
   async function deleteBranch(id: string) {
     if (!confirm("¿Eliminar este local y todos sus vendedores? Las proformas ya generadas conservan el nombre como historial.")) return
-    const res = await fetch(`/api/admin/branches/${id}`, { method: "DELETE" })
-    if (res.ok) await loadBranches()
+    try {
+      const res = await fetch(`/api/admin/branches/${id}`, { method: "DELETE" })
+      if (res.ok) {
+        await loadBranches()
+      } else {
+        const data = await res.json().catch(() => null)
+        alert(data?.error || "No se pudo eliminar el local")
+      }
+    } catch {
+      alert("No se pudo conectar con el servidor.")
+    }
   }
 
   async function toggleBranchActive(branch: Branch) {
-    const res = await fetch(`/api/admin/branches/${branch.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: !branch.active }),
-    })
-    if (res.ok) await loadBranches()
+    try {
+      const res = await fetch(`/api/admin/branches/${branch.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !branch.active }),
+      })
+      if (res.ok) {
+        await loadBranches()
+      } else {
+        alert("No se pudo actualizar el local")
+      }
+    } catch {
+      alert("No se pudo conectar con el servidor.")
+    }
   }
 
   async function createSeller(branchId: string, branchName: string) {
@@ -95,6 +123,8 @@ export function SellersManager() {
       setNewSeller((s) => ({ ...s, [branchId]: { name: "", pin: randomPin() } }))
       await loadBranches()
       void branchName
+    } catch {
+      alert("No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.")
     } finally {
       setSavingSeller(null)
     }
@@ -102,35 +132,64 @@ export function SellersManager() {
 
   async function deleteSeller(id: string) {
     if (!confirm("¿Eliminar este vendedor? Ya no podrá generar proformas.")) return
-    const res = await fetch(`/api/admin/sellers/${id}`, { method: "DELETE" })
-    if (res.ok) await loadBranches()
+    try {
+      const res = await fetch(`/api/admin/sellers/${id}`, { method: "DELETE" })
+      if (res.ok) {
+        await loadBranches()
+      } else {
+        const data = await res.json().catch(() => null)
+        alert(data?.error || "No se pudo eliminar el vendedor")
+      }
+    } catch {
+      alert("No se pudo conectar con el servidor.")
+    }
   }
 
   async function toggleSellerActive(sellerId: string, active: boolean) {
-    const res = await fetch(`/api/admin/sellers/${sellerId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active }),
-    })
-    if (res.ok) await loadBranches()
+    try {
+      const res = await fetch(`/api/admin/sellers/${sellerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active }),
+      })
+      if (res.ok) {
+        await loadBranches()
+      } else {
+        alert("No se pudo actualizar el vendedor")
+      }
+    } catch {
+      alert("No se pudo conectar con el servidor.")
+    }
   }
 
   async function resetSellerPin(sellerId: string) {
     const pin = randomPin()
     if (!confirm(`¿Asignar una nueva clave a este vendedor? Será: ${pin}`)) return
-    const res = await fetch(`/api/admin/sellers/${sellerId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin }),
-    })
-    if (res.ok) {
-      alert(`Nueva clave: ${pin}. Anótala, no se puede volver a ver.`)
-      await loadBranches()
+    try {
+      const res = await fetch(`/api/admin/sellers/${sellerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      })
+      if (res.ok) {
+        alert(`Nueva clave: ${pin}. Anótala, no se puede volver a ver.`)
+        await loadBranches()
+      } else {
+        alert("No se pudo cambiar la clave")
+      }
+    } catch {
+      alert("No se pudo conectar con el servidor.")
     }
   }
 
   return (
     <div className="space-y-6">
+      {loadError && (
+        <Card className="border-destructive">
+          <CardContent className="pt-4 text-sm text-destructive">{loadError}</CardContent>
+        </Card>
+      )}
+
       {lastCreatedPin && (
         <Card className="border-primary">
           <CardContent className="pt-4 text-sm">

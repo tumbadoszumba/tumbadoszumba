@@ -21,7 +21,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
   }
 
   const { id } = await params
-  const body = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Cuerpo de la solicitud inválido" }, { status: 400 })
+  }
   const parsed = updateSellerSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten() }, { status: 400 })
@@ -35,7 +40,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
       data: { ...rest, ...(pin ? { pinHash: await hashPin(pin) } : {}) },
     })
     return NextResponse.json({ id: seller.id, name: seller.name, active: seller.active, branchId: seller.branchId })
-  } catch {
+  } catch (error) {
+    console.error("Error updating seller:", error)
     return NextResponse.json({ error: "Vendedor no encontrado" }, { status: 404 })
   }
 }
@@ -50,7 +56,8 @@ export async function DELETE(_: NextRequest, { params }: { params: Params }) {
   try {
     await prisma.seller.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error("Error deleting seller:", error)
     return NextResponse.json({ error: "Vendedor no encontrado" }, { status: 404 })
   }
 }

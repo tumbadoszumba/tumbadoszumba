@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ProductPickerDialog } from "@/components/admin/ProductPickerDialog"
-import type { Proforma, ProformaStatus, ProformaAdjustmentType, ProformaAdjustmentDirection } from "@/types"
+import type { Proforma, ProformaStatus, ProformaAdjustmentType, ProformaAdjustmentDirection, Branch } from "@/types"
 
 const statusLabels: Record<ProformaStatus, string> = {
   PENDIENTE: "Pendiente",
@@ -175,6 +175,13 @@ export default function AdminProformaDetailPage() {
   const [contactEmail, setContactEmail] = useState("")
   const [contactDocument, setContactDocument] = useState("")
   const [blankClient, setBlankClient] = useState(false)
+  const [showUnitPrice, setShowUnitPrice] = useState(false)
+  const [showItemTotal, setShowItemTotal] = useState(false)
+  const [branches, setBranches] = useState<Branch[]>([])
+  const [selectedBranchId, setSelectedBranchId] = useState("")
+  const [selectedSellerId, setSelectedSellerId] = useState("")
+  const [pin, setPin] = useState("")
+  const [generating, setGenerating] = useState(false)
   const [revealedItems, setRevealedItems] = useState<Set<string>>(new Set())
   const [revealTotal, setRevealTotal] = useState(false)
   const [itemAdjustOpen, setItemAdjustOpen] = useState<string | null>(null)
@@ -183,7 +190,66 @@ export default function AdminProformaDetailPage() {
 
   useEffect(() => {
     loadProforma()
+    loadBranches()
   }, [id])
+
+  async function loadBranches() {
+    try {
+      const res = await fetch("/api/admin/branches")
+      if (res.ok) setBranches(await res.json())
+    } catch {
+      // El selector de local/vendedor simplemente queda vacío.
+    }
+  }
+
+  const activeBranches = branches.filter((b) => b.active)
+  const sellersOfSelectedBranch = branches.find((b) => b.id === selectedBranchId)?.sellers.filter((s) => s.active) ?? []
+
+  async function generatePdf(download: boolean) {
+    if (!selectedBranchId || !selectedSellerId) {
+      alert("Selecciona el local y el vendedor")
+      return
+    }
+    if (!/^\d{6}$/.test(pin)) {
+      alert("La clave debe tener 6 dígitos")
+      return
+    }
+    setGenerating(true)
+    try {
+      const res = await fetch(`/api/admin/proformas/${id}/pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          branchId: selectedBranchId,
+          sellerId: selectedSellerId,
+          pin,
+          blank: blankClient,
+          download,
+          showUnitPrice,
+          showItemTotal,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        alert(data?.error || "No se pudo generar el PDF")
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      if (download) {
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `proforma-${proforma?.proformaNumber ?? id.slice(-8)}.pdf`
+        a.click()
+      } else {
+        window.open(url, "_blank")
+      }
+      setPin("")
+      await loadProforma()
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   async function loadProforma() {
     try {
@@ -854,13 +920,6 @@ export default function AdminProformaDetailPage() {
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={blankClient}
-              onCheckedChange={(checked) => setBlankClient(checked === true)}
-            />
-            Dejar datos del cliente en blanco en el PDF (llenar a mano)
-          </label>
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
@@ -870,26 +929,102 @@ export default function AdminProformaDetailPage() {
               Guardar contacto
             </Button>
             <Button
-              variant="outline"
-              onClick={() => window.open(`/api/admin/proformas/${id}/pdf${blankClient ? "?blank=1" : ""}`, "_blank")}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Generar Proforma (PDF)
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open(`/api/admin/proformas/${id}/pdf?download=1${blankClient ? "&blank=1" : ""}`, "_blank")}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Descargar
-            </Button>
-            <Button
               className="bg-[#25D366] hover:bg-[#1aad54]"
               disabled={!contactPhone}
               onClick={handleSendWhatsApp}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Enviar proforma por WhatsApp
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Generar Proforma (PDF)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {proforma.proformaNumber != null && (
+            <p className="text-sm text-muted-foreground">
+              N.º {proforma.proformaNumber} · Generada por {proforma.sellerName} en {proforma.branchName}
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium">Local</label>
+              <Select
+                value={selectedBranchId}
+                onValueChange={(v) => {
+                  setSelectedBranchId(v)
+                  setSelectedSellerId("")
+                }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecciona un local" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeBranches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Vendedor</label>
+              <Select value={selectedSellerId} onValueChange={setSelectedSellerId} disabled={!selectedBranchId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecciona un vendedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sellersOfSelectedBranch.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Clave del vendedor</label>
+              <Input
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="6 dígitos"
+                className="mt-1 font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={blankClient} onCheckedChange={(v) => setBlankClient(v === true)} />
+              Dejar datos del cliente en blanco (llenar a mano)
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={showUnitPrice} onCheckedChange={(v) => setShowUnitPrice(v === true)} />
+              Mostrar V. Unitario
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={showItemTotal} onCheckedChange={(v) => setShowItemTotal(v === true)} />
+              Mostrar Total por material
+            </label>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" disabled={generating} onClick={() => generatePdf(false)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Generar Proforma (PDF)
+            </Button>
+            <Button variant="outline" disabled={generating} onClick={() => generatePdf(true)}>
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
             </Button>
           </div>
         </CardContent>

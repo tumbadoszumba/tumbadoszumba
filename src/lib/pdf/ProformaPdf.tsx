@@ -7,7 +7,7 @@ import {
   View,
   renderToBuffer,
 } from "@react-pdf/renderer"
-import { COMPANY } from "./company"
+import { COMPANY, PROFORMA_VALIDITY_DAYS } from "./company"
 import { amountToWords } from "./amount-in-words"
 import { IVA_RATE } from "@/lib/proforma-totals"
 
@@ -25,6 +25,12 @@ export interface ProformaPdfData {
   client: { name: string; document: string; phone: string }
   // Deja los datos del cliente como líneas ____ para llenarlos a mano.
   blankClient: boolean
+  sellerName: string
+  branchName: string
+  // Columnas opcionales de la tabla: por defecto van ocultas y solo la
+  // sección de totales de abajo se muestra siempre.
+  showUnitPrice: boolean
+  showItemTotal: boolean
   items: ProformaPdfItem[]
   adjustment: { label: string; amount: number } | null
   subtotal: number
@@ -63,19 +69,22 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", minHeight: ROW_HEIGHT },
   cell: { paddingVertical: 4, paddingHorizontal: 5 },
   colName: { flex: 1, borderRightWidth: 0.8, borderRightColor: BORDER },
-  colQty: { width: 55, textAlign: "center", borderRightWidth: 0.8, borderRightColor: BORDER },
-  colUnit: { width: 75, textAlign: "right", borderRightWidth: 0.8, borderRightColor: BORDER },
+  colQty: { width: 60, textAlign: "center" },
+  colQtyMid: { width: 60, textAlign: "center", borderRightWidth: 0.8, borderRightColor: BORDER },
+  colUnit: { width: 75, textAlign: "right" },
+  colUnitMid: { width: 75, textAlign: "right", borderRightWidth: 0.8, borderRightColor: BORDER },
   colTotal: { width: 75, textAlign: "right" },
   bottom: { flexDirection: "row", borderTopWidth: 0.8, borderTopColor: BORDER },
   bottomLeft: { flex: 1, borderRightWidth: 0.8, borderRightColor: BORDER, paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8 },
   words: { fontSize: 8.5, marginTop: 3, marginBottom: 8 },
   dashed: { borderBottomWidth: 0.8, borderBottomColor: BORDER, borderBottomStyle: "dashed", marginBottom: 6 },
-  signLine: { width: 150, borderTopWidth: 0.8, borderTopColor: BORDER, marginTop: 34, paddingTop: 3 },
+  signLine: { width: 160, borderTopWidth: 0.8, borderTopColor: BORDER, marginTop: 34, paddingTop: 3 },
   bottomRight: { width: TOTALS_WIDTH, paddingVertical: 8, paddingHorizontal: 10 },
   totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
   grandRow: { flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.8, borderTopColor: BORDER, paddingTop: 7, marginTop: 2 },
   grandText: { fontFamily: "Helvetica-Bold", fontSize: 12 },
-  note: { fontSize: 8, color: GRAY, lineHeight: 1.4, marginTop: 10 },
+  legalTitle: { fontFamily: "Helvetica-Bold", fontSize: 9, marginTop: 10, marginBottom: 2 },
+  note: { fontSize: 8, color: GRAY, lineHeight: 1.4 },
 })
 
 const fmtMoney = (n: number) => n.toFixed(2)
@@ -83,11 +92,12 @@ const fmtDate = (d: Date) => d.toLocaleDateString("es-EC", { day: "2-digit", mon
 
 function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | null }) {
   const validUntil = new Date(data.createdAt)
-  validUntil.setDate(validUntil.getDate() + 7)
+  validUntil.setDate(validUntil.getDate() + PROFORMA_VALIDITY_DAYS)
   const { client, blankClient } = data
   const ivaPercent = Math.round(IVA_RATE * 100)
   const itemsSubtotal = data.subtotal - (data.adjustment?.amount ?? 0)
   const fillerHeight = Math.max(0, MIN_BODY_HEIGHT - data.items.length * ROW_HEIGHT)
+  const colCount = 2 + (data.showUnitPrice ? 1 : 0) + (data.showItemTotal ? 1 : 0)
 
   return (
     <Document title={`Proforma ${data.number}`} author={COMPANY.name}>
@@ -138,15 +148,20 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
             </View>
             <View style={{ flexDirection: "row", width: 200 }}>
               <Text style={styles.label}>Validez:</Text>
-              <Text>7 días (hasta {fmtDate(validUntil)})</Text>
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              <Text style={styles.label}>Vendedor:</Text>
-              <Text>{COMPANY.representative.toUpperCase()}</Text>
+              <Text>
+                {PROFORMA_VALIDITY_DAYS} días (hasta {fmtDate(validUntil)})
+              </Text>
             </View>
           </View>
           <View style={styles.boxRow}>
-            <Text style={styles.label}>Observación:</Text>
+            <View style={{ flexDirection: "row", width: 190 }}>
+              <Text style={styles.label}>Local:</Text>
+              <Text>{data.branchName}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={styles.label}>Vendedor:</Text>
+              <Text>{data.sellerName}</Text>
+            </View>
           </View>
         </View>
 
@@ -160,25 +175,27 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
         <View style={styles.table}>
           <View style={styles.tableHead}>
             <Text style={[styles.th, styles.colName]}>Descripción</Text>
-            <Text style={[styles.th, styles.colQty]}>Cantidad</Text>
-            <Text style={[styles.th, styles.colUnit]}>V. Unitario</Text>
-            <Text style={[styles.th, styles.colTotal]}>Total</Text>
+            <Text style={[styles.th, colCount === 1 ? styles.colQty : styles.colQtyMid]}>Unidades</Text>
+            {data.showUnitPrice && <Text style={[styles.th, (data.showItemTotal ? styles.colUnitMid : styles.colUnit)]}>V. Unitario</Text>}
+            {data.showItemTotal && <Text style={[styles.th, styles.colTotal]}>Total</Text>}
           </View>
           {data.items.map((item, i) => (
             <View key={i} style={styles.row} wrap={false}>
               <Text style={[styles.cell, styles.colName]}>{item.name}</Text>
-              <Text style={[styles.cell, styles.colQty]}>
+              <Text style={[styles.cell, colCount === 1 ? styles.colQty : styles.colQtyMid]}>
                 {item.quantity} {item.unit}
               </Text>
-              <Text style={[styles.cell, styles.colUnit]}>{item.unitPrice != null ? fmtMoney(item.unitPrice) : "—"}</Text>
-              <Text style={[styles.cell, styles.colTotal]}>{fmtMoney(item.total)}</Text>
+              {data.showUnitPrice && (
+                <Text style={[styles.cell, (data.showItemTotal ? styles.colUnitMid : styles.colUnit)]}>{item.unitPrice != null ? fmtMoney(item.unitPrice) : "—"}</Text>
+              )}
+              {data.showItemTotal && <Text style={[styles.cell, styles.colTotal]}>{fmtMoney(item.total)}</Text>}
             </View>
           ))}
           <View style={[styles.row, { height: fillerHeight, minHeight: 0 }]}>
             <View style={styles.colName} />
-            <View style={styles.colQty} />
-            <View style={styles.colUnit} />
-            <View style={styles.colTotal} />
+            <View style={colCount === 1 ? styles.colQty : styles.colQtyMid} />
+            {data.showUnitPrice && <View style={data.showItemTotal ? styles.colUnitMid : styles.colUnit} />}
+            {data.showItemTotal && <View style={styles.colTotal} />}
           </View>
 
           <View style={styles.bottom} wrap={false}>
@@ -188,8 +205,8 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
               <View style={styles.dashed} />
               <Text style={styles.bold}>Atentamente,</Text>
               <View style={styles.signLine}>
-                <Text style={styles.bold}>{COMPANY.representative.toUpperCase()}</Text>
-                <Text style={{ color: GRAY }}>{COMPANY.name}</Text>
+                <Text style={styles.bold}>{COMPANY.name}</Text>
+                <Text style={{ color: GRAY }}>RUC: {COMPANY.ruc}</Text>
               </View>
             </View>
             <View style={styles.bottomRight}>
@@ -224,12 +241,14 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
           </View>
         </View>
 
-        <Text style={styles.note} wrap={false}>
-          * IVA del {ivaPercent}% según regulación tributaria Ecuador 2026. Aplica a todos los productos y servicios.
-          {"\n"}
-          Esta proforma NO tiene validez tributaria ante el SRI. Es una cotización comercial. Para formalizar la compra se
-          requiere factura electrónica autorizada por el Servicio de Rentas Internas de Ecuador.
-        </Text>
+        <View wrap={false}>
+          <Text style={styles.legalTitle}>IMPORTANTE LEGAL:</Text>
+          <Text style={styles.note}>
+            Esta proforma NO tiene validez tributaria ante el SRI. Es una cotización comercial. Para formalizar la
+            compra se requiere factura electrónica autorizada por el Servicio de Rentas Internas de Ecuador.
+            {"\n"}* IVA del {ivaPercent}% según regulación tributaria Ecuador 2026. Aplica a todos los productos y servicios.
+          </Text>
+        </View>
       </Page>
     </Document>
   )

@@ -98,6 +98,9 @@ export interface Proforma {
   contactPhone?: string | null
   contactEmail?: string | null
   contactDocument?: string | null
+  proformaNumber?: number | null
+  branchName?: string | null
+  sellerName?: string | null
   createdAt: string
   deletedAt?: string | null
   adjustmentType?: ProformaAdjustmentType | null
@@ -110,4 +113,20 @@ export interface Proforma {
   originalTotal?: number
   adjustmentAmount?: number
   total?: number
+}
+
+export interface Seller {
+  id: string
+  name: string
+  active: boolean
+  branchId: string
+}
+
+export interface Branch {
+  id: string
+  name: string
+  phone?: string | null
+  address?: string | null
+  active: boolean
+  sellers: Seller[]
 }

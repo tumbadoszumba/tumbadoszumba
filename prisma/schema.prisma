@@ -271,6 +271,19 @@ model Proforma {
   adjustmentDirection String?
   adjustmentValue     Decimal? @db.Decimal(10, 4)
 
+  // Se asignan la primera vez que se genera el PDF (validado con la clave del
+  // vendedor) y ya no cambian de número; el nombre del local y del vendedor se
+  // guardan aparte para que el historial no se pierda si luego se editan o
+  // eliminan. No hay una tabla de "generaciones": el PDF se puede volver a
+  // descargar las veces que haga falta con el mismo número.
+  proformaNumber Int?
+  branchId       String?
+  branch         Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  branchName     String?
+  sellerId       String?
+  seller         Seller? @relation(fields: [sellerId], references: [id], onDelete: SetNull)
+  sellerName     String?
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
@@ -282,6 +295,8 @@ model Proforma {
   @@index([userId])
   @@index([status])
   @@index([deletedAt])
+  @@index([branchId])
+  @@index([sellerId])
   @@map("proformas")
 }
 
@@ -307,6 +322,44 @@ model ProformaItem {
 
   @@index([proformaId])
   @@map("proforma_items")
+}
+
+// Local físico de la empresa. Cada local lleva su propio correlativo de
+// número de proforma, empezando en 100000.
+model Branch {
+  id                  String   @id @default(cuid())
+  name                String
+  phone               String?
+  address             String?
+  active              Boolean  @default(true)
+  nextProformaNumber  Int      @default(100000)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  sellers   Seller[]
+  proformas Proforma[]
+
+  @@map("branches")
+}
+
+// Vendedor de un local. La clave (PIN de 6 dígitos) se guarda con hash y solo
+// sirve para autorizar la generación del PDF de una proforma a su nombre; no
+// es una cuenta de acceso al panel admin.
+model Seller {
+  id        String   @id @default(cuid())
+  name      String
+  pinHash   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  proformas Proforma[]
+
+  @@index([branchId])
+  @@map("sellers")
 }
 
 model MediaItem {

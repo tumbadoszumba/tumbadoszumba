@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/layout/ThemeToggle"
+import { SellersManager } from "@/components/admin/SellersManager"
 import { Tabs,TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
@@ -33,6 +34,7 @@ export default function AdminSettingsPage() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="store">Tienda</TabsTrigger>
+          <TabsTrigger value="vendedores">Vendedores</TabsTrigger>
           <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
           <TabsTrigger value="payments">Pagos</TabsTrigger>
         </TabsList>
@@ -206,6 +208,11 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Vendedores */}
+        <TabsContent value="vendedores" className="space-y-6">
+          <SellersManager />
         </TabsContent>
 
         {/* Notifications */}

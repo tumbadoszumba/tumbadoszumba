@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/select"
 
 export default function AdminSettingsPage() {
+  const [activeTab, setActiveTab] = useState("general")
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -30,7 +33,7 @@ export default function AdminSettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="store">Tienda</TabsTrigger>
@@ -322,13 +325,15 @@ export default function AdminSettingsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button>
-          <Save className="mr-2 h-4 w-4" />
-          Guardar Cambios
-        </Button>
-      </div>
+      {/* Save Button: no aplica a Vendedores, esa pestaña guarda cada accion al toque */}
+      {activeTab !== "vendedores" && (
+        <div className="flex justify-end">
+          <Button>
+            <Save className="mr-2 h-4 w-4" />
+            Guardar Cambios
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

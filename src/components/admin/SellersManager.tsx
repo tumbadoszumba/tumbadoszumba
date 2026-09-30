@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Trash2, KeyRound, Store } from "lucide-react"
+import { Plus, Trash2, KeyRound, Store, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,7 +14,66 @@ function randomPin() {
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 
+// Candado con clave de admin antes de mostrar el modulo de Locales/Vendedores.
+// Se valida en el servidor contra VENDEDORES_ACCESS_PIN; se vuelve a pedir
+// cada vez que se recarga la pagina.
+function VendedoresAccessGate({ onUnlock }: { onUnlock: () => void }) {
+  const [pin, setPin] = useState("")
+  const [checking, setChecking] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function submit() {
+    if (!pin.trim()) return
+    setChecking(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/admin/vendedores-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      })
+      if (res.ok) {
+        onUnlock()
+      } else {
+        const data = await res.json().catch(() => null)
+        setError(data?.error || "No se pudo verificar la clave")
+      }
+    } catch {
+      setError("No se pudo conectar con el servidor.")
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  return (
+    <Card className="max-w-sm">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Lock className="h-4 w-4 text-muted-foreground" />
+          <CardTitle>Acceso restringido</CardTitle>
+        </div>
+        <CardDescription>Escribe la clave de administrador para entrar a Vendedores</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Input
+          type="password"
+          value={pin}
+          onChange={(e) => setPin(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Clave"
+          autoFocus
+        />
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button onClick={submit} disabled={checking || !pin.trim()} className="w-full">
+          Entrar
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function SellersManager() {
+  const [unlocked, setUnlocked] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(true)
   const [newBranch, setNewBranch] = useState({ name: "", phone: "", address: "" })
@@ -43,8 +102,8 @@ export function SellersManager() {
   }
 
   useEffect(() => {
-    loadBranches()
-  }, [])
+    if (unlocked) loadBranches()
+  }, [unlocked])
 
   async function createBranch() {
     if (!newBranch.name.trim()) return
@@ -180,6 +239,10 @@ export function SellersManager() {
     } catch {
       alert("No se pudo conectar con el servidor.")
     }
+  }
+
+  if (!unlocked) {
+    return <VendedoresAccessGate onUnlock={() => setUnlocked(true)} />
   }
 
   return (

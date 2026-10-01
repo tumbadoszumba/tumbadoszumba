@@ -72,6 +72,101 @@ function VendedoresAccessGate({ onUnlock }: { onUnlock: () => void }) {
   )
 }
 
+// Permite al admin cambiar la clave de acceso a este modulo sin tocar
+// variables de entorno. Pide la clave actual para poder cambiarla.
+function ChangeAccessPinCard() {
+  const [open, setOpen] = useState(false)
+  const [currentPin, setCurrentPin] = useState("")
+  const [newPin, setNewPin] = useState("")
+  const [confirmPin, setConfirmPin] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  async function submit() {
+    setError(null)
+    setSuccess(false)
+    if (!/^\d{6}$/.test(newPin)) {
+      setError("La clave nueva debe tener 6 dígitos")
+      return
+    }
+    if (newPin !== confirmPin) {
+      setError("Las claves nuevas no coinciden")
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch("/api/admin/vendedores-access/change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPin, newPin }),
+      })
+      if (res.ok) {
+        setSuccess(true)
+        setCurrentPin("")
+        setNewPin("")
+        setConfirmPin("")
+      } else {
+        const data = await res.json().catch(() => null)
+        setError(data?.error || "No se pudo cambiar la clave")
+      }
+    } catch {
+      setError("No se pudo conectar con el servidor.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base">Clave de acceso a Vendedores</CardTitle>
+            <CardDescription>Cámbiala cuando quieras, solo necesitas la clave actual</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>
+            {open ? "Cancelar" : "Cambiar clave"}
+          </Button>
+        </div>
+      </CardHeader>
+      {open && (
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Clave actual</Label>
+              <Input type="password" value={currentPin} onChange={(e) => setCurrentPin(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Clave nueva (6 dígitos)</Label>
+              <Input
+                className="font-mono"
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                maxLength={6}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Repite la clave nueva</Label>
+              <Input
+                className="font-mono"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                maxLength={6}
+              />
+            </div>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          {success && <p className="text-sm text-primary">Clave actualizada.</p>}
+          <Button onClick={submit} disabled={saving}>
+            Guardar nueva clave
+          </Button>
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
 export function SellersManager() {
   const [unlocked, setUnlocked] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
@@ -261,6 +356,8 @@ export function SellersManager() {
           </CardContent>
         </Card>
       )}
+
+      <ChangeAccessPinCard />
 
       <Card>
         <CardHeader>

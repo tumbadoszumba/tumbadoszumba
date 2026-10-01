@@ -362,6 +362,17 @@ model Seller {
   @@map("sellers")
 }
 
+// Valores de configuracion simples que el admin puede cambiar desde el panel
+// (por ahora solo la clave de acceso a Locales/Vendedores). Si no hay fila
+// para una clave, se usa el valor del .env como respaldo.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
 model MediaItem {
   id        String   @id @default(cuid())
   name      String

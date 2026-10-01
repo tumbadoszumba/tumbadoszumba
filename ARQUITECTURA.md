@@ -8,8 +8,9 @@
 4. [Arquitectura de Carpetas](#arquitectura-de-carpetas)
 5. [Módulos Principales](#módulos-principales)
 6. [Sistema de Calculadoras](#sistema-de-calculadoras)
-7. [Reglas de Diseño](#reglas-de-diseño)
-8. [Roadmap y Fases](#roadmap-y-fases)
+7. [Sistema de Proformas](#sistema-de-proformas-)
+8. [Reglas de Diseño](#reglas-de-diseño)
+9. [Roadmap y Fases](#roadmap-y-fases)
 
 ---
 
@@ -161,6 +162,56 @@ Message
 ├─ id, name, email, phone?, subject, message
 ├─ isRead: boolean
 └─ createdAt: datetime
+```
+
+### Proforma (⭐ Nuevo)
+```
+Proforma
+├─ id: string (cuid)
+├─ status: PENDIENTE | COTIZADA | ENVIADA
+├─ area: decimal(10,2)
+├─ contactName?, contactPhone?, contactEmail?, contactDocument? (RUC/Cédula)
+├─ deletedAt?: datetime - papelera (purga automática a los 30 días)
+├─ adjustmentType? / adjustmentDirection? / adjustmentValue? - descuento o recargo sobre el total
+├─ proformaNumber?: int - correlativo del local, se asigna la primera vez que se genera el PDF
+├─ branchId? → Branch, branchName? (copia del nombre al momento de generar)
+├─ sellerId? → Seller, sellerName? (copia del nombre al momento de generar)
+├─ userId → User, calculatorId → Calculator
+└─ items: ProformaItem[]
+
+ProformaItem
+├─ id: string (cuid)
+├─ name, unit, quantity: decimal, unitPrice?: decimal, position: int
+├─ originalUnitPrice?, originalQuantity - valores originales de la calculadora (para "ver original"/"restablecer")
+├─ proformaId → Proforma, materialId? → CalculatorMaterial
+```
+
+### Branch & Seller (⭐ Nuevo)
+Locales físicos y sus vendedores; usados para numerar y firmar las proformas en PDF.
+```
+Branch
+├─ id: string (cuid)
+├─ name, phone?, address?
+├─ active: boolean
+├─ nextProformaNumber: int (default 100000) - contador propio del local
+└─ sellers: Seller[], proformas: Proforma[]
+
+Seller
+├─ id: string (cuid)
+├─ name: string
+├─ pinHash: string - clave de 6 dígitos, hasheada (bcrypt)
+├─ active: boolean
+├─ branchId → Branch
+└─ proformas: Proforma[]
+```
+
+### AppSetting (⭐ Nuevo)
+Valores de configuración simples editables desde el panel (hoy solo la clave de acceso a Vendedores).
+```
+AppSetting
+├─ key: string (id) - ej. "vendedores_access_pin_hash"
+├─ value: string
+└─ updatedAt: datetime
 ```
 
 ---
@@ -317,6 +368,8 @@ src/
 - **Gestión de Usuarios**: Roles, estado, historial
 - **Mensajes de Contacto**: Listado, marcar como leído
 - **Calculadoras**: ⭐ NUEVO - Crear, editar, eliminar
+- **Proformas**: ⭐ NUEVO - Edición, ajustes, PDF, papelera
+- **Vendedores**: ⭐ NUEVO - Locales y vendedores (`/admin/settings` → pestaña Vendedores, con clave de acceso)
 
 ### 5. **Sistema de Calculadoras** ⭐
 Ver [CALCULATORS.md](./CALCULATORS.md) para detalles completos.
@@ -357,6 +410,57 @@ DELETE /api/calculators/{id}/materials     # Eliminar material
 - **Componente**: `DynamicCalculatorSection.tsx`
 - **Ubicación**: Página principal (esquina superior izquierda)
 - **Flujo**: Selecciona → Ingresa área → Calcula → Envía por WhatsApp
+
+---
+
+## Sistema de Proformas ⭐
+
+Una proforma se crea desde una calculadora (frontend) y se gestiona desde `/admin/proformas`. El PDF final solo se genera eligiendo un **Local** y un **Vendedor**, y escribiendo la clave de 6 dígitos de ese vendedor.
+
+### Endpoints API
+
+```
+GET    /api/proformas                          # Crear/listar desde el frontend
+GET    /api/admin/proformas                     # Listar (admin)
+GET    /api/admin/proformas/{id}                # Detalle con totales
+PATCH  /api/admin/proformas/{id}                # Contacto, estado, ajuste de total
+DELETE /api/admin/proformas/{id}                # Papelera / borrado definitivo (?permanent=1)
+POST   /api/admin/proformas/{id}/restore        # Restaurar de la papelera
+POST   /api/admin/proformas/{id}/reset-all      # Restablecer items a sus valores originales
+POST   /api/admin/proformas/{id}/items          # Agregar item (producto o manual)
+PATCH  /api/admin/proformas/{id}/items/{itemId} # Editar precio/cantidad de un item
+
+POST   /api/admin/proformas/{id}/pdf            # Generar el PDF: body {branchId, sellerId, pin,
+                                                 #   blank?, download?, showUnitPrice?, showItemTotal?}
+
+GET    /api/admin/branches                      # Listar locales (con sus vendedores)
+POST   /api/admin/branches                      # Crear local
+PATCH  /api/admin/branches/{id}                 # Editar / activar-desactivar
+DELETE /api/admin/branches/{id}                 # Eliminar (las proformas ya generadas
+                                                 #   conservan branchName como historial)
+POST   /api/admin/branches/{id}/sellers         # Crear vendedor (name + pin de 6 dígitos)
+PATCH  /api/admin/sellers/{id}                  # Editar nombre / activo / resetear clave
+DELETE /api/admin/sellers/{id}                  # Eliminar
+
+POST   /api/admin/vendedores-access             # Verificar la clave para entrar al módulo Vendedores
+POST   /api/admin/vendedores-access/change      # Cambiarla (pide la clave actual)
+```
+
+### PDF (`src/lib/pdf/ProformaPdf.tsx`)
+
+- Generado con **`@react-pdf/renderer`** (no `pdf-lib`): texto real seleccionable, no una imagen.
+- **Número de proforma**: correlativo propio de cada local (`Branch.nextProformaNumber`, empieza en 100000); se asigna una sola vez, al generar el PDF por primera vez — volver a generarlo no cambia el número.
+- **IVA**: los precios guardados no lo incluyen; el PDF suma 15% sobre el subtotal (± el ajuste de descuento/recargo de la proforma). El total del PDF es mayor al que se ve en el admin (ese sigue sin IVA).
+- **Validez**: 3 días desde la fecha de creación.
+- Columnas **V. Unitario** y **Total** por material están ocultas por defecto; dos checkboxes en el admin las muestran si hace falta. El resumen de abajo (Subtotal, IVA, Total) siempre se muestra.
+- Checkbox para dejar los datos del cliente en blanco (para llenarlos a mano).
+- Datos fijos de la empresa (RUC, logo, teléfono) en `src/lib/pdf/company.ts`.
+
+### Locales y Vendedores (`/admin/settings` → pestaña Vendedores)
+
+- El admin crea **Locales** (nombre, teléfono, dirección) y, dentro de cada uno, **Vendedores** (nombre + clave de 6 dígitos). La clave se guarda hasheada (bcrypt) y solo se muestra una vez al crearla o al resetearla ("Nueva clave").
+- Entrar a esta pestaña pide una clave de administrador aparte (`src/lib/vendedores-access.ts`): se guarda hasheada en `AppSetting` y se cambia desde un botón dentro del propio módulo (pide la clave actual). Si nunca se ha cambiado, se usa `VENDEDORES_ACCESS_PIN` del `.env` como respaldo inicial.
+- La clave de cada vendedor es distinta: solo autoriza generar el PDF a su nombre (no da acceso al panel).
 
 ---
 
@@ -460,6 +564,10 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Email (opcional para producción)
 SMTP_FROM=noreply@tumbadoszumba.com
+
+# Clave para entrar a Configuracion > Vendedores (solo respaldo inicial;
+# una vez cambiada desde el panel, se usa la que esta en la BD)
+VENDEDORES_ACCESS_PIN=123456
 ```
 
 ---

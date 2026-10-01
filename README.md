@@ -15,6 +15,7 @@ E-commerce especializado en gypsum, cielo raso, iluminación y acabados arquitec
 - 🛡️ **Enrutamiento y Seguridad**: Proxy de Next.js 16 (`src/proxy.ts`) para protección de rutas.
 - ⚙️ **Panel de administración**: Gestión completa de productos, usuarios, pedidos y calculadoras.
 - 🧮 **Calculadoras dinámicas**: Sistema configurable de calculadoras de materiales. Los admins crean/editan sistemas desde el panel, y los usuarios calculan materiales ingresando el área en m².
+- 📄 **Proformas en PDF**: Generación de proformas con numeración por local, IVA e información del vendedor (ver [ARQUITECTURA.md](./ARQUITECTURA.md#sistema-de-proformas-)).
 
 ---
 

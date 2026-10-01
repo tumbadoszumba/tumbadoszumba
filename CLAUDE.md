@@ -64,6 +64,15 @@ Las calculadoras de materiales son **completamente configurables desde el admin*
 
 Ver [CALCULATORS.md](./CALCULATORS.md) para documentación detallada.
 
+## Sistema de Proformas y Vendedores
+
+- **Admin Panel**: `/admin/proformas` - edición, ajustes de precio/total, papelera
+- **Locales y vendedores**: `/admin/settings` → pestaña Vendedores (pide una clave de admin aparte, cambiable desde ahí mismo). BD: modelos `Branch`, `Seller`, `AppSetting`
+- **Generar PDF**: requiere elegir Local + Vendedor + clave de 6 dígitos del vendedor (`POST /api/admin/proformas/{id}/pdf`); el número de proforma es correlativo por local y solo se asigna una vez
+- **PDF**: `src/lib/pdf/ProformaPdf.tsx` con `@react-pdf/renderer` (no `pdf-lib`), IVA 15% aparte, validez 3 días
+
+Ver [ARQUITECTURA.md](./ARQUITECTURA.md#sistema-de-proformas-) para documentación detallada.
+
 ## Animaciones (Motion)
 
 Para replicar el patrón "Bento Grid Expandible" (card que se transforma en modal con `layoutId`) o el "Skeleton Loader" (placeholders con shimmer), sigue estrictamente las reglas y plantillas del skill [.claude/skills/motion-bento-skeleton/SKILL.md](./.claude/skills/motion-bento-skeleton/SKILL.md). No improvises variantes nuevas de estos patrones.

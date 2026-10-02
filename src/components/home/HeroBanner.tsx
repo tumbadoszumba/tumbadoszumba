@@ -1,10 +1,8 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import Image from "next/image"
 import Autoplay from "embla-carousel-autoplay"
-import { Button } from "@/components/ui/button"
 import {
   Carousel,
   CarouselContent,
@@ -13,39 +11,24 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
+// Banners ya diseñados (1920x640): el texto y la info van dentro de la propia
+// imagen, por eso no se superpone contenido ni botones. La misma imagen sirve
+// para web y celular.
 const slides = [
   {
     id: 1,
-    badge: "Estructura Profesional",
-    title: "Perfilería Metálica",
-    subtitle: "Para Cielos Rasos y Paredes",
-    description: "Perfiles galvanizados de alta resistencia para instalaciones de gypsum y construcción en seco.",
-    cta: "Ver Perfilería",
-    href: "/products?category=gypsum",
-    imageWeb: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973278/basictech/media/general/qwduflotktnjvsjgmnkr.jpg",
-    imageMobile: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973292/basictech/media/general/xjt2scrg4hrnabuhjwtn.jpg",
+    alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921174/basictech/media/general/dheytdibn2mhkzhatqsc.jpg",
   },
   {
     id: 2,
-    badge: "Catálogo Completo",
-    title: "Cielos Rasos y Paneles PVC",
-    subtitle: "Variedad de Diseños",
-    description: "Paneles decorativos para cielo raso y pared con texturas de madera, ondulados y lisos en PVC resistente.",
-    cta: "Ver Paneles",
-    href: "/products?category=duelas-pvc",
-    imageWeb: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973280/basictech/media/general/n6vbyc7afdd4cvsrwnz1.jpg",
-    imageMobile: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973292/basictech/media/general/euxqjbuv9zppylsa6ybp.jpg",
+    alt: "Catálogo de cielos raso y paneles de pared de PVC",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921176/basictech/media/general/ys1prwmy3eu324d1pqyx.jpg",
   },
   {
     id: 3,
-    badge: "Construcción en Seco",
-    title: "Placas de Yeso y Fibrocemento",
-    subtitle: "Calidad Garantizada",
-    description: "Materiales profesionales para cielos rasos, divisiones y acabados de interior con las mejores marcas.",
-    cta: "Ver Placas",
-    href: "/products?category=gypsum",
-    imageWeb: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973282/basictech/media/general/ullgzrhmlnowm7iihppr.jpg",
-    imageMobile: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788973293/basictech/media/general/bxd9nj6aaley0arfpt9q.jpg",
+    alt: "Perfilería metálica para cielos rasos y paredes",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921178/basictech/media/general/ftoe7fi9ssqtufeamnal.jpg",
   },
 ]
 
@@ -67,51 +50,15 @@ export function HeroBanner() {
           {slides.map((slide) => (
             <CarouselItem key={slide.id} className="h-full">
               <div className="relative h-full w-full overflow-hidden">
-                {/* Mobile Background Image */}
                 <Image
-                  src={slide.imageMobile}
-                  alt={slide.title}
+                  src={slide.image}
+                  alt={slide.alt}
                   fill
                   draggable={false}
-                  className="object-cover md:hidden"
+                  className="object-cover"
                   priority={slide.id === 1}
-                  sizes="100vw"
+                  sizes="(min-width: 1920px) 1920px, 100vw"
                 />
-                {/* Desktop Background Image */}
-                <Image
-                  src={slide.imageWeb}
-                  alt={slide.title}
-                  fill
-                  draggable={false}
-                  className="object-cover hidden md:block"
-                  priority={slide.id === 1}
-                  sizes="100vw"
-                />
-                {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
-
-                {/* Content — alineado al contenedor del resto de la página */}
-                <div className="relative z-10 h-full container mx-auto px-4">
-                  <div className="flex flex-col justify-center h-full py-4 max-w-md">
-                    <span className="inline-block w-fit rounded bg-brand-orange/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-white mb-2 tracking-wide uppercase">
-                      {slide.badge}
-                    </span>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                      {slide.title}
-                    </h2>
-                    <p className="text-base sm:text-lg font-semibold text-brand-orange mt-1">
-                      {slide.subtitle}
-                    </p>
-                    <p className="mt-2 text-xs sm:text-sm text-white/80 max-w-sm leading-relaxed line-clamp-2">
-                      {slide.description}
-                    </p>
-                    <div className="mt-4 flex items-center gap-2">
-                      <Button asChild className="h-9 text-sm font-semibold px-5 rounded-md">
-                        <Link href={slide.href}>{slide.cta}</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
               </div>
             </CarouselItem>
           ))}

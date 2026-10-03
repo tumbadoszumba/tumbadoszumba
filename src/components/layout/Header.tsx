@@ -161,7 +161,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
               alt="TumbadosZumba"
               width={310}
               height={100}
-              className="h-[70px] w-auto object-contain transition-transform hover:scale-105 dark:hidden"
+              className="h-[91px] w-auto object-contain transition-transform hover:scale-105 dark:hidden"
               priority
             />
             <Image
@@ -169,7 +169,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
               alt="TumbadosZumba"
               width={310}
               height={100}
-              className="h-[70px] w-auto object-contain transition-transform hover:scale-105 hidden dark:block"
+              className="h-[91px] w-auto object-contain transition-transform hover:scale-105 hidden dark:block"
               priority
             />
           </Link>

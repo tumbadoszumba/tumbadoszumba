@@ -50,12 +50,23 @@ export function HeroBanner() {
           {slides.map((slide) => (
             <CarouselItem key={slide.id} className="h-full">
               <div className="relative h-full w-full overflow-hidden">
+                {/* Fondo: la misma imagen ampliada y difuminada para rellenar los lados */}
+                <Image
+                  src={slide.image}
+                  alt=""
+                  aria-hidden
+                  fill
+                  draggable={false}
+                  className="object-cover scale-110 blur-2xl brightness-90"
+                  sizes="100vw"
+                />
+                {/* Imagen completa, sin recorte */}
                 <Image
                   src={slide.image}
                   alt={slide.alt}
                   fill
                   draggable={false}
-                  className="object-cover"
+                  className="object-contain"
                   priority={slide.id === 1}
                   sizes="(min-width: 1920px) 1920px, 100vw"
                 />

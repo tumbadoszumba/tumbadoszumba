@@ -55,7 +55,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-md border-slate-200 dark:border-slate-800">
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-square overflow-hidden bg-white">
         {/* Badges */}
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1">
           {product.isNew && (
@@ -86,7 +86,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={productImage}
               alt={product.name}
               fill
-              className="object-cover transition-transform group-hover:scale-105"
+              className="object-contain transition-transform group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           </div>

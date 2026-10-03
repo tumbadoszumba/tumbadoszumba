@@ -34,6 +34,7 @@ const cards: MosaicCard[] = [
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788980567/basictech/media/general/p4exapcgkhtif2341fgb.png",
     span: "col-span-1 lg:col-span-3",
     tone: "light",
+    imageFit: "contain",
     curtain: { bg: "#F47B20", text: "#FFFFFF" },
   },
   {
@@ -117,7 +118,7 @@ export function CategoryMosaic() {
     <section className="container mx-auto px-4 pt-4 pb-3">
       <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4">
         {/* Tarjeta destacada: se expande en su lugar hacia la calculadora (shared layout animation) */}
-        <div className="col-span-1 lg:col-span-3 relative h-[150px] sm:h-[178px]">
+        <div className="col-span-1 lg:col-span-3 relative h-[120px] sm:h-[142px]">
           {!openCalc && (
             <motion.button
               layoutId="calc-card"
@@ -126,7 +127,7 @@ export function CategoryMosaic() {
               className="group absolute inset-0 overflow-hidden text-left"
               style={{
                 background: "linear-gradient(160deg, #2E6BFF 0%, #1E4FD6 55%, #0a1a3a 100%)",
-                borderRadius: 0,
+                borderRadius: 6, // = rounded-md de las demás tarjetas
               }}
               whileHover={{ y: -2, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
@@ -161,7 +162,7 @@ export function CategoryMosaic() {
 
         {cards.map((card) => {
           const t = toneStyles[card.tone]
-          const cardClassName = `${card.span} group relative overflow-hidden rounded-md h-[150px] sm:h-[178px] ${t.bg} text-left transition-transform hover:-translate-y-0.5`
+          const cardClassName = `${card.span} group relative overflow-hidden rounded-md h-[120px] sm:h-[142px] ${t.bg} text-left transition-transform hover:-translate-y-0.5`
           const cardContent = (
             <>
               {/* Panel de imagen a la derecha, nítido y visible */}
@@ -238,7 +239,7 @@ export function CategoryMosaic() {
             <motion.div
               layoutId="calc-card"
               className="relative w-full max-w-sm overflow-hidden"
-              style={{ borderRadius: 0 }}
+              style={{ borderRadius: 6 }}
               transition={{ type: "spring", stiffness: 93, damping: 17 }}
               onClick={(e) => e.stopPropagation()}
             >

@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE } from "@/lib/site"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,7 +13,7 @@ import { useInstallationQuoteStore } from "@/stores/installation-quote-store"
 import { cn } from "@/lib/utils"
 import { SectionTag, btnGhost, btnPrimary, fieldLine, line, mutedText, surface } from "./shared"
 
-const WHATSAPP_NUMBER = "593997119881"
+const WHATSAPP_NUMBER = SITE.whatsapp
 // /api/messages exige email; el formulario solo pide WhatsApp
 const FALLBACK_EMAIL = "cotizaciones@tumbadoszumba.com"
 
@@ -36,10 +37,10 @@ const quoteSchema = z.object({
 type QuoteFormData = z.infer<typeof quoteSchema>
 
 const contactInfo = [
-  { label: "Dirección", value: "Av. 25 de Agosto y Galápagos" },
-  { label: "WhatsApp", value: "+593 96 990 3466" },
-  { label: "Horario", value: "Lun – Sáb · 8:00 – 18:00" },
-  { label: "Correo", value: "tumbadoszumba2508@gmail.com" },
+  { label: "Dirección", value: SITE.address.street },
+  { label: "WhatsApp", value: SITE.phoneDisplay },
+  { label: "Horario", value: SITE.hoursText.short },
+  { label: "Correo", value: SITE.email },
 ]
 
 const inputClass = cn(
@@ -157,7 +158,7 @@ export function QuoteForm() {
     }
 
     const text = [
-      "*Solicitud de cotización - TumbadosZumba*",
+      "*Solicitud de cotización - Tumbados Zumba*",
       "",
       `*Nombre:* ${parsed.data.name}`,
       `*Teléfono:* ${parsed.data.phone}`,

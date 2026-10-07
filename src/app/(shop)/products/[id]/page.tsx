@@ -1,7 +1,6 @@
-"use client"
-
-import { use, useEffect, useState } from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
+import { notFound, permanentRedirect } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import {
   Breadcrumb,
@@ -12,95 +11,87 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { ProductGallery } from "@/components/products/ProductGallery"
 import { ProductDetail } from "@/components/products/ProductDetail"
 import { ProductCard } from "@/components/products/ProductCard"
-import { Product } from "@/types"
+import { JsonLd } from "@/components/seo/JsonLd"
+import { getProductByKey, getRelatedProducts } from "@/lib/queries-seo"
+import { getCategories } from "@/lib/queries"
+import type { Product } from "@/types"
+import { SITE, categoryPath, productPath } from "@/lib/site"
+import { breadcrumbJsonLd, pageMetadata, productJsonLd, truncate } from "@/lib/seo"
+
+// Misma frecuencia de refresco que el resto de la tienda; el admin además
+// invalida por tag al guardar un producto.
+export const revalidate = 60
+
+/** Solo se indexa lo que la tienda pública muestra: activo y con stock. */
+function isIndexable(product: Product) {
+  return product.isActive !== false && product.stock > 0
+}
 
 interface ProductPageProps {
   params: Promise<{ id: string }>
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const { id } = use(params)
-  const [product, setProduct] = useState<Product | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params
+  const product = await getProductByKey(id)
 
-  useEffect(() => {
-    async function fetchProduct() {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/products/${id}`)
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("not_found")
-          } else {
-            throw new Error("Failed to fetch product")
-          }
-          return
-        }
-
-        const data = await response.json()
-        setProduct(data)
-
-        // Fetch related products
-        const relatedResponse = await fetch(
-          `/api/products?category=${data.category}&limit=4`
-        )
-        if (relatedResponse.ok) {
-          const relatedData = await relatedResponse.json()
-          setRelatedProducts(
-            relatedData.products.filter((p: Product) => p.id !== data.id).slice(0, 4)
-          )
-        }
-      } catch (err) {
-        setError("error")
-        console.error("Error fetching product:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProduct()
-  }, [id])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <Skeleton className="mb-6 h-6 w-64" />
-        <div className="grid gap-8 lg:grid-cols-2">
-          <Skeleton className="aspect-square rounded-lg" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-6 w-1/4" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-      </div>
-    )
+  if (!product) {
+    return { title: "Producto no encontrado", robots: { index: false, follow: false } }
   }
 
-  if (error === "not_found" || !product) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold">Producto no encontrado</h1>
-        <p className="mt-2 text-muted-foreground">
-          El producto que buscas no existe o ha sido eliminado.
-        </p>
-        <Button asChild className="mt-4">
-          <Link href="/products">Ver todos los productos</Link>
-        </Button>
-      </div>
-    )
-  }
+  const where = `${SITE.address.city}, ${SITE.address.country}`
+  const description = product.description
+    ? truncate(`${product.name}. ${product.description}`, 155)
+    : truncate(
+        `${product.name}${product.brand && !/^sin marca$/i.test(product.brand) ? ` ${product.brand}` : ""}. Compra en ${SITE.name}, ${where}.`,
+        155
+      )
+
+  return pageMetadata({
+    title: truncate(product.name, 60),
+    description,
+    path: productPath(product.slug),
+    image: product.images[0],
+    // Un producto oculto en la tienda (desactivado o sin stock) se ve por enlace directo, pero no se indexa
+    noindex: !isIndexable(product),
+  })
+}
+
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params
+  const product = await getProductByKey(id)
+
+  if (!product) notFound()
+
+  // Enlaces viejos con el id → una sola URL oficial con el nombre (slug)
+  if (id !== product.slug) permanentRedirect(productPath(product.slug))
+
+  const [relatedProducts, categories] = await Promise.all([
+    getRelatedProducts(product.category, product.id, 4),
+    getCategories(),
+  ])
+  const categoryName = categories.find((c) => c.slug === product.category)?.name ?? product.category
+  const indexable = isIndexable(product)
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {indexable && (
+        <>
+          <JsonLd data={productJsonLd(product, categoryName)} />
+          <JsonLd
+            data={breadcrumbJsonLd([
+              { name: "Inicio", path: "/" },
+              { name: "Productos", path: "/products" },
+              { name: categoryName, path: categoryPath(product.category) },
+              { name: product.name, path: productPath(product.slug) },
+            ])}
+          />
+        </>
+      )}
+
       {/* Back Button - Mobile */}
       <Button
         variant="ghost"

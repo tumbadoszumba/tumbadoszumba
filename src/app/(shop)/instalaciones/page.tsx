@@ -16,12 +16,14 @@ import {
 } from "@/components/installations/shared"
 import { installationProjects } from "@/data/installation-projects"
 import { cn } from "@/lib/utils"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata: Metadata = {
-  title: "Instalación de gypsum y tumbados | TumbadosZumba",
+export const metadata: Metadata = pageMetadata({
+  title: "Instalación de tumbados y gypsum en La Troncal, Ecuador",
   description:
-    "Tumbados, paredes de gypsum y luz indirecta instalados por nuestros maestros, con el mismo material que vendemos en la tienda.",
-}
+    "Instalamos tumbados, paredes de gypsum y luz indirecta en La Troncal y alrededores, con el mismo material que vendemos en la tienda. Visita, medidas y presupuesto claro.",
+  path: "/instalaciones",
+})
 
 const HERO_STORE_IMAGE =
   "https://res.cloudinary.com/dxkmtbde/image/upload/v1788982326/basictech/media/general/jnyg7eq9rcbkzunfppsx.jpg"
@@ -76,7 +78,7 @@ export default function InstalacionesPage() {
                 afterSrc={HERO_WORK_IMAGE}
                 beforeLabel="Nuestra tienda"
                 afterLabel="Tu obra"
-                subject="de la tienda TumbadosZumba a un tumbado terminado"
+                subject="de la tienda Tumbados Zumba a un tumbado terminado"
                 initialPosition={46}
                 sizes="(max-width: 1024px) 100vw, 640px"
                 priority

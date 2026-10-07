@@ -396,7 +396,7 @@ export default function AdminProformaDetailPage() {
       .join("\n")
 
     const msg = encodeURIComponent(
-      `🏗️ *Proforma - TumbadosZumba*\n\n` +
+      `🏗️ *Proforma - Tumbados Zumba*\n\n` +
       `👤 *Cliente:* ${contactName || proforma.user?.name || ""}\n` +
       `📐 *Sistema:* ${proforma.calculator.name}\n` +
       `📏 *Área:* ${proforma.area} m²\n\n` +

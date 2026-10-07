@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE } from "@/lib/site"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -94,7 +95,7 @@ export function WhatsAppFloat() {
       <QuotePopup
         isOpen={isQuoteOpen}
         onClose={() => setIsQuoteOpen(false)}
-        whatsappNumber="593997119881"
+        whatsappNumber={SITE.whatsapp}
       />
     </>
   )

@@ -1,5 +1,10 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar"
 import { AdminHeader } from "@/components/admin/AdminHeader"
+import type { Metadata } from "next"
+import { noIndexMetadata } from "@/lib/seo"
+
+// Panel privado: nunca debe aparecer en buscadores
+export const metadata: Metadata = noIndexMetadata
 
 export default function AdminLayout({
   children,

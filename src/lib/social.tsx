@@ -1,8 +1,9 @@
+import { SITE } from "@/lib/site"
 import type { ReactNode } from "react"
 
-const WHATSAPP_NUM = "593997119881"
+const WHATSAPP_NUM = SITE.whatsapp
 const DEFAULT_MSG =
-  "Hola 👋, estoy en la página de TumbadosZumba y quiero más información."
+  "Hola 👋, estoy en la página de Tumbados Zumba y quiero más información."
 
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(
   DEFAULT_MSG

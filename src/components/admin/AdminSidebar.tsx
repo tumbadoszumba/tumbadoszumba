@@ -62,7 +62,7 @@ export function AdminSidebar() {
       <div className="flex h-16 items-center gap-2 border-b px-6">
         <Image
           src="/iconozumba.png"
-          alt="TumbadosZumba"
+          alt="Tumbados Zumba"
           width={32}
           height={32}
           className="h-8 w-8 rounded-lg object-contain"

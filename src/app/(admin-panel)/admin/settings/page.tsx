@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
 import { useState } from "react"
 import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -84,21 +85,21 @@ export default function AdminSettingsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="storeName">Nombre de la tienda</Label>
-                  <Input id="storeName" defaultValue="TumbadosZumba" />
+                  <Input id="storeName" defaultValue="Tumbados Zumba" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="storeEmail">Email de contacto</Label>
-                  <Input id="storeEmail" type="email" defaultValue="info@tumbadoszumba.com" />
+                  <Input id="storeEmail" type="email" defaultValue={SITE.email} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="storePhone">Telefono</Label>
-                  <Input id="storePhone" defaultValue="+593969903466" />
+                  <Input id="storePhone" defaultValue={SITE.phoneDisplay} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="storeAddress">Direccion</Label>
-                  <Input id="storeAddress" defaultValue="Av. 25 de agosto y galapagos" />
+                  <Input id="storeAddress" defaultValue={ADDRESS_SHORT} />
                 </div>
               </div>
               <div className="space-y-2">

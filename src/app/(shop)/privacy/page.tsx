@@ -1,3 +1,5 @@
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">
@@ -19,7 +21,7 @@ export default function PrivacyPage() {
               1. Introducción
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              TumbadosZumba ("nosotros", "nuestro" o "la Empresa") respeta la privacidad de nuestros usuarios ("usuario" o "usted"). Esta Política de Privacidad explica cómo recopilamos, utilizamos, divulgamos y salvaguardamos su información cuando utiliza nuestro sitio web y servicios.
+              Tumbados Zumba ("nosotros", "nuestro" o "la Empresa") respeta la privacidad de nuestros usuarios ("usuario" o "usted"). Esta Política de Privacidad explica cómo recopilamos, utilizamos, divulgamos y salvaguardamos su información cuando utiliza nuestro sitio web y servicios.
             </p>
           </section>
 
@@ -160,14 +162,14 @@ export default function PrivacyPage() {
             </p>
             <div className="text-sm text-muted-foreground space-y-1 ml-4">
               <p>📧 Email: tumbadoszumba2508@gmail.com</p>
-              <p>📱 WhatsApp / Teléfono: +593969903466</p>
-              <p>📍 Dirección: Av. 25 de agosto y galapagos</p>
+              <p>📱 WhatsApp / Teléfono: {SITE.phoneDisplay}</p>
+              <p>📍 Dirección: {ADDRESS_SHORT}</p>
             </div>
           </section>
 
           <section className="rounded-xl border border-brand-orange/20 bg-brand-orange/5 p-6 sm:p-8 mt-8">
             <p className="text-xs text-muted-foreground text-center">
-              Al continuar utilizando TumbadosZumba, usted acepta nuestra Política de Privacidad y Términos de Servicio.
+              Al continuar utilizando Tumbados Zumba, usted acepta nuestra Política de Privacidad y Términos de Servicio.
             </p>
           </section>
         </div>

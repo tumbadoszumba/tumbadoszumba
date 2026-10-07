@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE } from "@/lib/site"
 import React, { useEffect } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
@@ -38,7 +39,7 @@ const listItemVariants: Variants = {
 export const QuotePopup: React.FC<QuotePopupProps> = ({
     isOpen,
     onClose,
-    whatsappNumber = "593997119881",
+    whatsappNumber = SITE.whatsapp,
     calculatorHref = "#calculadora",
     offersHref = "/ofertas",
 }) => {

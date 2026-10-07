@@ -568,7 +568,23 @@ SMTP_FROM=noreply@tumbadoszumba.com
 # Clave para entrar a Configuracion > Vendedores (solo respaldo inicial;
 # una vez cambiada desde el panel, se usa la que esta en la BD)
 VENDEDORES_ACCESS_PIN=123456
+
+# SEO (ambas opcionales)
+# Dominio publico; por defecto https://www.tumbadoszumba.com (ver src/lib/site.ts)
+NEXT_PUBLIC_SITE_URL=https://www.tumbadoszumba.com
+# Codigo de verificacion de Google Search Console (meta tag)
+GOOGLE_SITE_VERIFICATION=
 ```
+
+## SEO
+
+Los datos del negocio para buscadores (dominio, direccion, telefono, horario, redes) viven en **`src/lib/site.ts`**; los textos por categoria y las preguntas frecuentes en `src/lib/seo-copy.ts`; los metadatos y JSON-LD en `src/lib/seo.ts`.
+
+- `src/app/robots.ts` y `src/app/sitemap.ts`: robots (permite buscadores de IA) y sitemap dinamico.
+- `src/app/llms.txt/route.ts`: resumen del negocio en Markdown para asistentes de IA.
+- `src/app/opengraph-image.tsx`: imagen por defecto al compartir.
+- Fichas (`/products/[slug]`) y categorias (`/categoria/[slug]`) se renderizan en el servidor con JSON-LD. Solo se indexa lo que la tienda muestra (activo y con stock).
+- Las paginas privadas (admin, perfil, carrito, checkout, login) llevan `noindex`.
 
 ---
 

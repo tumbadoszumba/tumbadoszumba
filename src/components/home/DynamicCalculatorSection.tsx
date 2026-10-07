@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE } from "@/lib/site"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -10,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Calculator } from "@/types"
 import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw } from "lucide-react"
 
-const WA_NUMBER = "593990099265"
+const WA_NUMBER = SITE.whatsapp
 
 const ceil = (x: number) => Math.ceil(x - 1e-9)
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
@@ -318,7 +319,7 @@ export function DynamicCalculatorSection() {
       : ""
 
     const msg = encodeURIComponent(
-      `🏗️ *Solicitud de Proforma - TumbadosZumba*\n\n` +
+      `🏗️ *Solicitud de Proforma - Tumbados Zumba*\n\n` +
       `👤 *Cliente:* ${data.contactName?.trim() || session?.user?.name || "Sin nombre"}\n` +
       `📐 *Sistema:* ${calculator.name}${systemDetail}\n` +
       `📏 *Área:* ${fmt(parseFloat(area))} m²\n\n` +

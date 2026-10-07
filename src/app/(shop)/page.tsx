@@ -4,12 +4,19 @@ import { CategoryMosaic } from "@/components/home/CategoryMosaic"
 import { FlashOffers } from "@/components/home/FlashOffers"
 import { FeaturedProducts } from "@/components/home/FeaturedProducts"
 import { BrandSection } from "@/components/home/BrandSection"
+import { SeoIntro } from "@/components/home/SeoIntro"
+import type { Metadata } from "next"
 import {
   getBestSellingProducts,
   getOfferProducts,
   getFeaturedProducts,
   getBrands,
+  getCategories,
 } from "@/lib/queries"
+import { SITE, absoluteUrl } from "@/lib/site"
+
+// El título y la descripción vienen del layout raíz; aquí solo se fija el canonical
+export const metadata: Metadata = { alternates: { canonical: absoluteUrl("/") } }
 
 // Refresca los datos de la home cada 60s como mínimo, para que un cambio en
 // el admin (productos, ofertas, marcas) no quede congelado hasta el próximo
@@ -18,15 +25,21 @@ export const revalidate = 60
 
 export default async function HomePage() {
   // Todas las consultas salen en paralelo; el HTML ya llega con los productos
-  const [popular, offers, featured, brands] = await Promise.all([
+  const [popular, offers, featured, brands, categories] = await Promise.all([
     getBestSellingProducts(6),
     getOfferProducts(12),
     getFeaturedProducts(8),
     getBrands(),
+    getCategories(),
   ])
 
   return (
     <>
+      {/* Título principal de la página para buscadores y lectores de pantalla (no se ve en el diseño) */}
+      <h1 className="sr-only">
+        {SITE.name}: gypsum, cielo raso PVC y acabados en {SITE.address.city}, {SITE.address.country}
+      </h1>
+
       {/* Categorías recomendadas */}
       <CategoryGrid products={popular} />
 
@@ -46,6 +59,9 @@ export default async function HomePage() {
 
       <FeaturedProducts products={featured} />
       <BrandSection brands={brands} />
+
+      {/* Texto de presentación y preguntas frecuentes (SEO local e IA) */}
+      <SeoIntro categories={categories} />
     </>
   )
 }

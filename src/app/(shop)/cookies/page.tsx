@@ -1,3 +1,5 @@
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
+
 export default function CookiesPage() {
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">
@@ -28,7 +30,7 @@ export default function CookiesPage() {
               2. Cookies que Utilizamos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              En TumbadosZumba solo utilizamos cookies propias, necesarias para el funcionamiento del sitio:
+              En Tumbados Zumba solo utilizamos cookies propias, necesarias para el funcionamiento del sitio:
             </p>
             <div className="text-sm text-muted-foreground leading-relaxed space-y-3 ml-4">
               <div>
@@ -76,8 +78,8 @@ export default function CookiesPage() {
             </p>
             <div className="text-sm text-muted-foreground space-y-1 ml-4">
               <p>📧 Email: tumbadoszumba2508@gmail.com</p>
-              <p>📱 WhatsApp / Teléfono: +593969903466</p>
-              <p>📍 Dirección: Av. 25 de agosto y galapagos</p>
+              <p>📱 WhatsApp / Teléfono: {SITE.phoneDisplay}</p>
+              <p>📍 Dirección: {ADDRESS_SHORT}</p>
             </div>
           </section>
         </div>

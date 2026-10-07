@@ -155,21 +155,21 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
         <div className="hidden md:flex items-stretch gap-4 py-2">
 
           {/* Logo — full height, left column */}
-          <Link href="/" className="flex items-center shrink-0 self-center" aria-label="TumbadosZumba">
+          <Link href="/" className="flex items-center shrink-0 self-center" aria-label="Tumbados Zumba">
             <Image
               src="/logo-light.png"
-              alt="TumbadosZumba"
+              alt="Tumbados Zumba"
               width={310}
               height={100}
-              className="h-[91px] w-auto object-contain transition-transform hover:scale-105 dark:hidden"
+              className="h-[118px] w-auto object-contain transition-transform hover:scale-105 dark:hidden"
               priority
             />
             <Image
               src="/logo-dark.png"
-              alt="TumbadosZumba"
+              alt="Tumbados Zumba"
               width={310}
               height={100}
-              className="h-[91px] w-auto object-contain transition-transform hover:scale-105 hidden dark:block"
+              className="h-[118px] w-auto object-contain transition-transform hover:scale-105 hidden dark:block"
               priority
             />
           </Link>
@@ -415,10 +415,10 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
             </span>
           </Link>
 
-          <Link href="/" className="flex items-center justify-center" aria-label="TumbadosZumba">
+          <Link href="/" className="flex items-center justify-center" aria-label="Tumbados Zumba">
             <Image
               src="/logo-light.png"
-              alt="TumbadosZumba"
+              alt="Tumbados Zumba"
               width={130}
               height={44}
               className="h-10 w-auto object-contain dark:hidden"
@@ -426,7 +426,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
             />
             <Image
               src="/logo-dark.png"
-              alt="TumbadosZumba"
+              alt="Tumbados Zumba"
               width={130}
               height={44}
               className="h-10 w-auto object-contain hidden dark:block"

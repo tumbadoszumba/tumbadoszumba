@@ -1,3 +1,5 @@
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">
@@ -19,7 +21,7 @@ export default function TermsPage() {
               1. Aceptación de Términos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Al acceder y utilizar el sitio web de TumbadosZumba, usted acepta estar vinculado por estos Términos de Servicio. Si no está de acuerdo con cualquier parte de estos términos, le pedimos que no utilice nuestro sitio web. Nos reservamos el derecho de modificar estos términos en cualquier momento, siendo su responsabilidad revisar periodicamente los cambios.
+              Al acceder y utilizar el sitio web de Tumbados Zumba, usted acepta estar vinculado por estos Términos de Servicio. Si no está de acuerdo con cualquier parte de estos términos, le pedimos que no utilice nuestro sitio web. Nos reservamos el derecho de modificar estos términos en cualquier momento, siendo su responsabilidad revisar periodicamente los cambios.
             </p>
           </section>
 
@@ -28,7 +30,7 @@ export default function TermsPage() {
               2. Uso de la Plataforma
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              Usted se compromete a utilizar TumbadosZumba únicamente para propósitos legales y de la manera que no infrinja los derechos de terceros ni restrinja su uso y disfrute. La conducta prohibida incluye:
+              Usted se compromete a utilizar Tumbados Zumba únicamente para propósitos legales y de la manera que no infrinja los derechos de terceros ni restrinja su uso y disfrute. La conducta prohibida incluye:
             </p>
             <ul className="text-sm text-muted-foreground leading-relaxed space-y-2 ml-4">
               <li>• Acosar o causar vergüenza, angustia o molestia a cualquier persona</li>
@@ -44,7 +46,7 @@ export default function TermsPage() {
               3. Productos y Precios
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              TumbadosZumba se esfuerza por mantener información precisa sobre los productos y precios. Sin embargo, no garantizamos la precisión de descripciones, precios o disponibilidad. Nos reservamos el derecho de limitar cantidades y descontinuar cualquier producto sin previo aviso. Los precios están sujetos a cambio sin notificación previa.
+              Tumbados Zumba se esfuerza por mantener información precisa sobre los productos y precios. Sin embargo, no garantizamos la precisión de descripciones, precios o disponibilidad. Nos reservamos el derecho de limitar cantidades y descontinuar cualquier producto sin previo aviso. Los precios están sujetos a cambio sin notificación previa.
             </p>
           </section>
 
@@ -53,7 +55,7 @@ export default function TermsPage() {
               4. Órdenes y Pagos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              Al realizar una compra, usted acepta proporcionar información precisa y actual. TumbadosZumba se reserva el derecho de rechazar o cancelar cualquier orden. El pago debe ser recibido antes del envío de los productos, excepto cuando se acuerda lo contrario.
+              Al realizar una compra, usted acepta proporcionar información precisa y actual. Tumbados Zumba se reserva el derecho de rechazar o cancelar cualquier orden. El pago debe ser recibido antes del envío de los productos, excepto cuando se acuerda lo contrario.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Los pagos se procesan de manera segura a través de sistemas autorizados. Al completar una transacción, usted acepta todas las políticas de pago y privacidad de nuestros proveedores de servicios de pago.
@@ -65,7 +67,7 @@ export default function TermsPage() {
               5. Envíos y Entregas
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              Los tiempos de entrega son estimados y no garantizados. TumbadosZumba no es responsable de retrasos causados por factores externos. El riesgo de pérdida o daño de los productos pasa al comprador una vez que el producto ha sido entregado.
+              Los tiempos de entrega son estimados y no garantizados. Tumbados Zumba no es responsable de retrasos causados por factores externos. El riesgo de pérdida o daño de los productos pasa al comprador una vez que el producto ha sido entregado.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Para cualquier inconveniente con la entrega, comuníquese con nuestro equipo de atención al cliente dentro de los 5 días hábiles posteriores a la entrega.
@@ -77,7 +79,7 @@ export default function TermsPage() {
               6. Devoluciones y Reembolsos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Las devoluciones deben solicitarse dentro de 15 días después de la entrega. Los productos deben estar en condiciones originales. TumbadosZumba evaluará cada solicitud de devolución de manera individual. Los reembolsos se procesarán dentro de 10 días hábiles después de recibir y verificar el producto devuelto.
+              Las devoluciones deben solicitarse dentro de 15 días después de la entrega. Los productos deben estar en condiciones originales. Tumbados Zumba evaluará cada solicitud de devolución de manera individual. Los reembolsos se procesarán dentro de 10 días hábiles después de recibir y verificar el producto devuelto.
             </p>
           </section>
 
@@ -95,7 +97,7 @@ export default function TermsPage() {
               8. Propiedad Intelectual
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Todo el contenido del sitio web de TumbadosZumba, incluyendo textos, gráficos, logos, imágenes y software, son propiedad de TumbadosZumba o de sus proveedores de contenido y está protegido por leyes internacionales de derechos de autor. Usted no puede reproducir, distribuir o transmitir contenido sin autorización previa escrita.
+              Todo el contenido del sitio web de Tumbados Zumba, incluyendo textos, gráficos, logos, imágenes y software, son propiedad de Tumbados Zumba o de sus proveedores de contenido y está protegido por leyes internacionales de derechos de autor. Usted no puede reproducir, distribuir o transmitir contenido sin autorización previa escrita.
             </p>
           </section>
 
@@ -117,8 +119,8 @@ export default function TermsPage() {
             </p>
             <div className="text-sm text-muted-foreground space-y-1 ml-4">
               <p>📧 Email: tumbadoszumba2508@gmail.com</p>
-              <p>📱 WhatsApp / Teléfono: +593969903466</p>
-              <p>📍 Dirección: Av. 25 de agosto y galapagos</p>
+              <p>📱 WhatsApp / Teléfono: {SITE.phoneDisplay}</p>
+              <p>📍 Dirección: {ADDRESS_SHORT}</p>
             </div>
           </section>
         </div>

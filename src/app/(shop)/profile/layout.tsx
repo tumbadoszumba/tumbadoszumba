@@ -1,5 +1,10 @@
 import { ProfileSidebar } from "@/components/profile/ProfileSidebar"
 import { ProfileMobileNav } from "@/components/profile/ProfileMobileNav"
+import type { Metadata } from "next"
+import { noIndexMetadata } from "@/lib/seo"
+
+// Cuenta del cliente: privada
+export const metadata: Metadata = noIndexMetadata
 
 export default function ProfileLayout({
   children,

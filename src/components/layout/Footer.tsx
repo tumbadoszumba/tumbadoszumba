@@ -1,3 +1,4 @@
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
 import Image from "next/image"
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
@@ -42,19 +43,19 @@ export function Footer({ products = [] }: { products?: FooterProduct[] }) {
             <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/logo-light.png"
-                alt="TumbadosZumba"
+                alt="Tumbados Zumba"
                 width={120}
                 height={32}
                 className="h-8 w-auto object-contain dark:hidden"
               />
               <Image
                 src="/logo-dark.png"
-                alt="TumbadosZumba"
+                alt="Tumbados Zumba"
                 width={120}
                 height={32}
                 className="h-8 w-auto object-contain hidden dark:block"
               />
-              <span className="font-bold text-lg">TumbadosZumba</span>
+              <span className="font-bold text-lg">Tumbados Zumba</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Tu tienda de tumbados de gypsum de confianza. Los mejores productos y acabados para tu hogar a los mejores precios.
@@ -146,15 +147,15 @@ export function Footer({ products = [] }: { products?: FooterProduct[] }) {
             <ul className="mt-4 space-y-3">
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={1.75} />
-                <span>Av. 25 de agosto y galapagos</span>
+                <span>{ADDRESS_SHORT}</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                <span>+593969903466</span>
+                <span>{SITE.phoneDisplay}</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                <span>tumbadoszumba2508@gmail.com</span>
+                <span>{SITE.email}</span>
               </li>
             </ul>
           </div>
@@ -166,7 +167,7 @@ export function Footer({ products = [] }: { products?: FooterProduct[] }) {
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex flex-col items-center sm:items-start gap-1">
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} TumbadosZumba. Todos los derechos reservados.
+              &copy; {new Date().getFullYear()} Tumbados Zumba. Todos los derechos reservados.
             </p>
             <p className="text-xs text-muted-foreground/80">
               Desarrollado por <a href="https://www.cauralis.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Cauralis</a>

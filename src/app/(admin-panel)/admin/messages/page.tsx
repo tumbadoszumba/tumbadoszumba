@@ -322,7 +322,7 @@ export default function AdminMessagesPage() {
                   </Button>
 
                   <a
-                    href={`mailto:${selectedMessage.email}?subject=Respuesta TumbadosZumba: ${encodeURIComponent(
+                    href={`mailto:${selectedMessage.email}?subject=Respuesta Tumbados Zumba: ${encodeURIComponent(
                       selectedMessage.subject
                     )}`}
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-brand-orange/90 transition-colors"

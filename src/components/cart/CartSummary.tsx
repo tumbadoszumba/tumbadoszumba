@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE } from "@/lib/site"
 import { Truck, MessageCircle, AlertCircle } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -48,7 +49,7 @@ export function CartSummary({ items }: CartSummaryProps) {
 
     msg += `\n\nPor favor, indíquenme los pasos a seguir para el pago y entrega.`;
 
-    const WHATSAPP_NUM = "593990099265";
+    const WHATSAPP_NUM = SITE.whatsapp;
     const uri = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`;
     window.open(uri, "_blank");
     clearCart();

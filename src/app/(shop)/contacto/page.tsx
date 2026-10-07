@@ -1,5 +1,6 @@
 "use client"
 
+import { SITE, ADDRESS_SHORT } from "@/lib/site"
 import { useState } from "react"
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -91,7 +92,7 @@ export default function ContactoPage() {
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Dirección</p>
                     <p className="text-muted-foreground text-xs sm:text-sm">
-                      Av. 25 de agosto y galapagos
+                      {ADDRESS_SHORT}
                     </p>
                   </div>
                 </div>
@@ -100,7 +101,7 @@ export default function ContactoPage() {
                   <Phone className="size-5 text-brand-orange mt-0.5 shrink-0" strokeWidth={1.75} />
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Teléfono / WhatsApp</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm">+593969903466</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm">{SITE.phoneDisplay}</p>
                   </div>
                 </div>
 
@@ -119,7 +120,11 @@ export default function ContactoPage() {
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Horario de Atención</p>
                     <p className="text-muted-foreground text-xs sm:text-sm">
-                      Lunes a Sábado: 8:00 AM - 6:00 PM
+                      {SITE.hoursText.weekdays}
+                      <br />
+                      {SITE.hoursText.saturday}
+                      <br />
+                      {SITE.hoursText.sunday}
                     </p>
                   </div>
                 </div>
@@ -150,7 +155,7 @@ export default function ContactoPage() {
                     ¡Mensaje recibido con éxito!
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    Gracias por comunicarte con TumbadosZumba. Hemos registrado tu mensaje y te
+                    Gracias por comunicarte con Tumbados Zumba. Hemos registrado tu mensaje y te
                     responderemos lo más pronto posible al correo indicado.
                   </p>
                   <Button

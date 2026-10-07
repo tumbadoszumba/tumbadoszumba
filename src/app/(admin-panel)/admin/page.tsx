@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Bienvenido al panel de administracion de TumbadosZumba
+          Bienvenido al panel de administracion de Tumbados Zumba
         </p>
       </div>
 

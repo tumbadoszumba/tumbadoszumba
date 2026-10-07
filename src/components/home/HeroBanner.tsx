@@ -18,17 +18,19 @@ const slides = [
   {
     id: 1,
     alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
-    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921174/basictech/media/general/dheytdibn2mhkzhatqsc.jpg",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791260924/basictech/media/general/dmrj4z6xdfpxtzwrc8a0.jpg",
   },
   {
     id: 2,
     alt: "Catálogo de cielos raso y paneles de pared de PVC",
-    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921176/basictech/media/general/ys1prwmy3eu324d1pqyx.jpg",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791350044/basictech/media/general/uo9afrqkji8ts2qqhgkq.png",
   },
   {
     id: 3,
     alt: "Perfilería metálica para cielos rasos y paredes",
-    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1790921178/basictech/media/general/ftoe7fi9ssqtufeamnal.jpg",
+    // El PNG trae 72 px transparentes por lado: se recortan desde la URL (c_crop) y se estira al 5:1
+    stretch: true,
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/c_crop,x_76,y_0,w_1768,h_384/v1791347598/basictech/media/general/d3blmbjagebd3ghjw3qa.png",
   },
 ]
 
@@ -66,7 +68,7 @@ export function HeroBanner() {
                   alt={slide.alt}
                   fill
                   draggable={false}
-                  className="object-contain"
+                  className={slide.stretch ? "object-fill" : "object-contain"}
                   priority={slide.id === 1}
                   sizes="(min-width: 1920px) 1920px, 100vw"
                 />

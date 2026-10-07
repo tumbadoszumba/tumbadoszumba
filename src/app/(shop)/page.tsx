@@ -32,8 +32,8 @@ export default async function HomePage() {
 
       {/* Banner principal full-bleed (todo el ancho de la pantalla) */}
       <section className="pb-1">
-        {/* Contenedor de 250px de alto (prueba). Las imágenes (3:1) se ven completas y los lados se rellenan con la misma imagen difuminada */}
-        <div className="mx-auto h-[250px] w-full max-w-[1920px]">
+        {/* Proporción 5:1 (1920x384): el alto crece con el ancho, así la imagen llena la pantalla de lado a lado sin recortes */}
+        <div className="mx-auto aspect-[5/1] w-full max-w-[1920px]">
           <HeroBanner />
         </div>
       </section>

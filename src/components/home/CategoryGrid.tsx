@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Search, TrendingUp } from "lucide-react"
+import { formatPrice } from "@/lib/format"
 
 interface PopularProduct {
   id: string
@@ -55,7 +56,7 @@ export function CategoryGrid({ products }: { products: PopularProduct[] }) {
                   <span className="leading-tight">{product.name}</span>
                   {product.price > 0 && (
                     <span className="text-[9px] font-mono font-semibold text-brand-navy dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0 rounded-full leading-tight">
-                      ${Number(product.price).toFixed(2)}
+                      ${formatPrice(Number(product.price))}
                     </span>
                   )}
                 </Link>

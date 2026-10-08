@@ -10,6 +10,7 @@ import {
 import { COMPANY, PROFORMA_VALIDITY_DAYS } from "./company"
 import { amountToWords } from "./amount-in-words"
 import { IVA_RATE } from "@/lib/proforma-totals"
+import { formatPrice } from "@/lib/format"
 
 export interface ProformaPdfItem {
   name: string
@@ -186,7 +187,7 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
                 {item.quantity} {item.unit}
               </Text>
               {data.showUnitPrice && (
-                <Text style={[styles.cell, (data.showItemTotal ? styles.colUnitMid : styles.colUnit)]}>{item.unitPrice != null ? fmtMoney(item.unitPrice) : "—"}</Text>
+                <Text style={[styles.cell, (data.showItemTotal ? styles.colUnitMid : styles.colUnit)]}>{item.unitPrice != null ? formatPrice(item.unitPrice) : "—"}</Text>
               )}
               {data.showItemTotal && <Text style={[styles.cell, styles.colTotal]}>{fmtMoney(item.total)}</Text>}
             </View>

@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { TrendingUp, Package, ArrowRight } from "lucide-react"
 import type { Product, Category } from "@/types"
+import { formatPrice } from "@/lib/format"
 
 interface SearchSuggestionsDropdownProps {
   isOpen: boolean
@@ -100,7 +101,7 @@ export function SearchSuggestionsDropdown({
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs font-mono font-bold text-foreground">
-                        ${Number(product.price).toFixed(2)}
+                        ${formatPrice(Number(product.price))}
                       </span>
                       {product.brand && (
                         <span className="text-[10px] text-muted-foreground truncate uppercase font-semibold">

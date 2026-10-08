@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { ImageUpload } from "@/components/admin/ImageUpload"
+import { hasMaxThreeDecimals } from "@/lib/format"
 import type { Product } from "@/types"
 
 interface UploadedImage {
@@ -46,8 +47,8 @@ const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   slug: z.string().min(1, "El slug es requerido"),
   description: z.string().min(1, "La descripcion es requerida"),
-  price: z.number({ error: "El precio es requerido" }).min(0, "El precio debe ser mayor a 0"),
-  comparePrice: z.number().min(0, "El precio anterior debe ser mayor o igual a 0").optional(),
+  price: z.number({ error: "El precio es requerido" }).min(0, "El precio debe ser mayor a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)"),
+  comparePrice: z.number().min(0, "El precio anterior debe ser mayor o igual a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)").optional(),
   stock: z.number({ error: "El stock es requerido" }).min(0, "El stock debe ser mayor o igual a 0"),
   categoryId: z.string().min(1, "La categoria es requerida"),
   brandId: z.string().optional(),
@@ -524,7 +525,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                 <Input
                   id="price"
                   type="number"
-                  step="0.01"
+                  step="0.001"
                   placeholder="0.00"
                   {...register("price", { valueAsNumber: true })}
                 />
@@ -537,12 +538,15 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                 <Input
                   id="comparePrice"
                   type="number"
-                  step="0.01"
+                  step="0.001"
                   placeholder="0.00"
                   {...register("comparePrice", {
                     setValueAs: (v) => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? undefined : Number(v)),
                   })}
                 />
+                {errors.comparePrice && (
+                  <p className="text-sm text-destructive">{errors.comparePrice.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stock">Stock</Label>

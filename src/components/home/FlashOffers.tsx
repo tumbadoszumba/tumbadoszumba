@@ -7,6 +7,7 @@ import { Clock, Heart, ChevronRight } from "lucide-react"
 import { Product } from "@/types"
 import { useFavoritesStore } from "@/stores/favorites-store"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatPrice } from "@/lib/format"
 
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1629429408209-1f912961dbd8?w=400&h=400&fit=crop"
@@ -74,7 +75,7 @@ function OfferCard({ product }: { product: Product }) {
     ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
     : 0
 
-  const [intPart, decPart] = product.price.toFixed(2).split(".")
+  const [intPart, decPart] = formatPrice(product.price).split(".")
   const tag =
     product.stock > 0 && product.stock <= 10
       ? "POCAS UNIDADES"
@@ -124,7 +125,7 @@ function OfferCard({ product }: { product: Product }) {
         <div className="mt-1.5 flex min-h-4 items-center justify-between gap-1">
           {hasDiscount && product.showPrice !== false ? (
             <span className="text-[11px] text-muted-foreground line-through">
-              ${product.originalPrice!.toFixed(2)}
+              ${formatPrice(product.originalPrice!)}
             </span>
           ) : (
             <span />

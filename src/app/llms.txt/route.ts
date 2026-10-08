@@ -2,6 +2,7 @@ import { SITE, ADDRESS_LINE, absoluteUrl, categoryPath, productPath } from "@/li
 import { getSitemapData } from "@/lib/queries-seo"
 import { getBestSellingProducts } from "@/lib/queries"
 import { truncate } from "@/lib/seo"
+import { formatPrice } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -54,7 +55,7 @@ export async function GET() {
   if (products.length) {
     lines.push("", "## Productos destacados")
     for (const p of products) {
-      const price = p.showPrice === false ? "" : ` — $${p.price.toFixed(2)} USD`
+      const price = p.showPrice === false ? "" : ` — $${formatPrice(p.price)} USD`
       const brand = p.brand && !/^sin marca$/i.test(p.brand) ? ` (${p.brand})` : ""
       lines.push(`- [${truncate(p.name, 90)}](${absoluteUrl(productPath(p.slug))})${brand}${price}`)
     }

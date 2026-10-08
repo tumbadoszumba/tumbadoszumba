@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getBestSellingProducts } from "@/lib/queries"
 import { transformProduct, transformCategory } from "@/lib/transformers"
+import { searchProductIds, normalizeSearch } from "@/lib/search"
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,31 +32,18 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Búsqueda en tiempo real cuando el usuario escribe
-    const sanitized = q
+    // Búsqueda en tiempo real cuando el usuario escribe (ver src/lib/search.ts)
+    const normalized = normalizeSearch(q)
 
     const [matchingIds, matchingCategories] = await Promise.all([
-      // IDs de productos mediante tsvector y coincidencia de texto
-      prisma.$queryRaw<{ id: string }[]>`
-        SELECT p.id
-        FROM "products" p
-        LEFT JOIN "categories" c ON c.id = p."categoryId"
-        LEFT JOIN "brands" b ON b.id = p."brandId"
-        WHERE p."isActive" = true
-          AND p.stock > 0
-          AND (
-            p."searchVector" @@ plainto_tsquery('spanish', ${sanitized})
-            OR c.name ILIKE ${'%' + sanitized + '%'}
-            OR b.name ILIKE ${'%' + sanitized + '%'}
-            OR p.specs::text ILIKE ${'%' + sanitized + '%'}
-            OR p.name ILIKE ${'%' + sanitized + '%'}
-          )
-        LIMIT 6
-      `,
-      // Categorías coincidentes
+      searchProductIds(q, { limit: 6 }),
+      // Categorías coincidentes (por nombre o slug, que no lleva tildes)
       prisma.category.findMany({
         where: {
-          name: { contains: sanitized, mode: "insensitive" },
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            ...(normalized ? [{ slug: { contains: normalized.replace(/ /g, "-") } }] : []),
+          ],
         },
         include: {
           _count: {
@@ -66,13 +54,16 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    const products = matchingIds.length > 0
+    // findMany no respeta el orden de "in": se reordena por relevancia.
+    const found = matchingIds.length > 0
       ? await prisma.product.findMany({
-          where: { id: { in: matchingIds.map((m) => m.id) }, isActive: true, stock: { gt: 0 } },
+          where: { id: { in: matchingIds }, isActive: true, stock: { gt: 0 } },
           include: { category: true, brand: true },
-          take: 6,
         })
       : []
+    const products = matchingIds
+      .map((id) => found.find((p) => p.id === id))
+      .filter((p): p is (typeof found)[number] => !!p)
 
     return NextResponse.json({
       products: products.map(transformProduct),

@@ -34,6 +34,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ProductPickerDialog } from "@/components/admin/ProductPickerDialog"
 import type { Proforma, ProformaStatus, ProformaAdjustmentType, ProformaAdjustmentDirection, Branch } from "@/types"
+import { formatPrice, roundPrice } from "@/lib/format"
 
 const statusLabels: Record<ProformaStatus, string> = {
   PENDIENTE: "Pendiente",
@@ -41,15 +42,21 @@ const statusLabels: Record<ProformaStatus, string> = {
   ENVIADA: "Enviada",
 }
 
-// Toda la interfaz (y la factura/PDF) muestra los precios con 2 decimales
-// nada más. Al crear o editar un precio sí se permite escribir hasta 3
-// decimales (para materiales de centavos), pero la vista siempre redondea a 2.
+// Los totales se muestran con 2 decimales. Los precios unitarios se escriben y
+// se ven con hasta 3 (materiales de centavos, ej. tornillos a $0.015), igual
+// que en la factura/PDF.
 function fmtPrice(n: number) {
   return `$ ${n.toFixed(2)}`
 }
 
-function round2(n: number) {
-  return Math.round(n * 100) / 100
+function fmtUnitPrice(n: number) {
+  return `$ ${formatPrice(n)}`
+}
+
+// Valor que muestra el campo de precio unitario. Se compara contra él al salir
+// del campo para no guardar un precio que el usuario no tocó.
+function unitPriceInputValue(n: number | null | undefined) {
+  return n != null ? String(roundPrice(n)) : ""
 }
 
 interface AdjustDialogProps {
@@ -63,6 +70,7 @@ interface AdjustDialogProps {
   onApply: (type: ProformaAdjustmentType, direction: ProformaAdjustmentDirection, value: number) => void
   onClear?: () => void
   hasAdjustment?: boolean
+  formatAmount?: (n: number) => string
 }
 
 function AdjustDialog({
@@ -76,6 +84,7 @@ function AdjustDialog({
   onApply,
   onClear,
   hasAdjustment,
+  formatAmount = fmtPrice,
 }: AdjustDialogProps) {
   const [type, setType] = useState<ProformaAdjustmentType>(initialType ?? "percentage")
   const [direction, setDirection] = useState<ProformaAdjustmentDirection>(initialDirection ?? "decrease")
@@ -124,7 +133,7 @@ function AdjustDialog({
             </label>
             <Input
               type="number"
-              step="0.01"
+              step="0.001"
               min="0"
               value={value}
               onChange={(e) => setValue(e.target.value)}
@@ -136,7 +145,7 @@ function AdjustDialog({
 
           {numValue > 0 && (
             <p className="text-xs text-muted-foreground">
-              Base: {fmtPrice(basePrice)} → Resultado: <span className="font-semibold text-foreground">{fmtPrice(Math.max(0, preview))}</span>
+              Base: {formatAmount(basePrice)} → Resultado: <span className="font-semibold text-foreground">{formatAmount(Math.max(0, preview))}</span>
             </p>
           )}
         </div>
@@ -301,7 +310,7 @@ export default function AdminProformaDetailPage() {
   }
 
   async function updateItemPrice(itemId: string, unitPrice: number | null) {
-    await patchItem(itemId, { unitPrice })
+    await patchItem(itemId, { unitPrice: unitPrice != null ? roundPrice(unitPrice) : null })
   }
 
   async function updateItemQuantity(itemId: string, quantity: number) {
@@ -544,11 +553,11 @@ export default function AdminProformaDetailPage() {
                         key={`price-${item.id}-${item.unitPrice ?? "null"}`}
                         type="number"
                         step="0.001"
-                        defaultValue={item.unitPrice != null ? round2(item.unitPrice) : ""}
+                        defaultValue={unitPriceInputValue(item.unitPrice)}
                         placeholder="—"
                         className="w-24 ml-auto text-right font-mono text-sm h-8"
                         onBlur={(e) => {
-                          if (e.target.value !== String(item.unitPrice ?? "")) {
+                          if (e.target.value !== unitPriceInputValue(item.unitPrice)) {
                             const parsed = e.target.value.trim() === "" ? null : parseFloat(e.target.value)
                             updateItemPrice(item.id, parsed !== null && Number.isNaN(parsed) ? null : parsed)
                           }
@@ -561,7 +570,7 @@ export default function AdminProformaDetailPage() {
                       />
                       {isRevealed && item.originalUnitPrice != null && (
                         <p className="text-[11px] text-muted-foreground mt-1">
-                          Real: {fmtPrice(item.originalUnitPrice)}
+                          Real: {fmtUnitPrice(item.originalUnitPrice)}
                         </p>
                       )}
                       {isAdjusted && !isRevealed && (
@@ -722,11 +731,11 @@ export default function AdminProformaDetailPage() {
                       key={`m-price-${item.id}-${item.unitPrice ?? "null"}`}
                       type="number"
                       step="0.001"
-                      defaultValue={item.unitPrice != null ? round2(item.unitPrice) : ""}
+                      defaultValue={unitPriceInputValue(item.unitPrice)}
                       placeholder="—"
                       className="w-full h-9 text-sm mt-1"
                       onBlur={(e) => {
-                        if (e.target.value !== String(item.unitPrice ?? "")) {
+                        if (e.target.value !== unitPriceInputValue(item.unitPrice)) {
                           const parsed = e.target.value.trim() === "" ? null : parseFloat(e.target.value)
                           updateItemPrice(item.id, parsed !== null && Number.isNaN(parsed) ? null : parsed)
                         }
@@ -736,7 +745,7 @@ export default function AdminProformaDetailPage() {
                       }}
                     />
                     {isRevealed && item.originalUnitPrice != null && (
-                      <p className="text-[11px] text-muted-foreground mt-1">Real: {fmtPrice(item.originalUnitPrice)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">Real: {fmtUnitPrice(item.originalUnitPrice)}</p>
                     )}
                     {isAdjusted && !isRevealed && (
                       <p className="text-[11px] text-brand-orange mt-1">Ajustado</p>
@@ -846,6 +855,7 @@ export default function AdminProformaDetailPage() {
           onOpenChange={(open) => setItemAdjustOpen(open ? selectedItem.id : null)}
           title={`Ajustar precio — ${selectedItem.name}`}
           basePrice={selectedItem.originalUnitPrice}
+          formatAmount={fmtUnitPrice}
           onApply={(type, direction, value) => {
             const base = selectedItem.originalUnitPrice as number
             const magnitude = type === "percentage" ? base * (value / 100) : value

@@ -72,8 +72,8 @@ Product
 ├─ name: string
 ├─ slug: string (unique)
 ├─ description: string?
-├─ price: decimal(10,2)
-├─ comparePrice: decimal(10,2)?
+├─ price: decimal(12,3) - hasta 3 decimales (ej. tornillos a $0.015)
+├─ comparePrice: decimal(12,3)?
 ├─ stock: int
 ├─ images: string[] (URLs)
 ├─ specs: JSON

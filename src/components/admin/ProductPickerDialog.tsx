@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { formatPrice } from "@/lib/format"
 import { Search, Plus } from "lucide-react"
 
 interface PickableProduct {
@@ -111,7 +112,7 @@ export function ProductPickerDialog({
               >
                 <span className="truncate">{product.name}</span>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  ${product.price.toFixed(2)}
+                  ${formatPrice(product.price)}
                 </span>
               </button>
             ))

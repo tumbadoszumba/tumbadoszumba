@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CartItem as CartItemType } from "@/types"
+import { formatPrice } from "@/lib/format"
 
 interface CartItemProps {
   item: CartItemType
@@ -83,7 +84,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
                 </p>
                 {quantity > 1 && (
                   <p className="text-xs text-muted-foreground">
-                    ${product.price.toFixed(2)} c/u
+                    ${formatPrice(product.price)} c/u
                   </p>
                 )}
               </>

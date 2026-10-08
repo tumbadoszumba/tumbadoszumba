@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type { Product } from "@/types"
 import { SITE, absoluteUrl, productPath } from "@/lib/site"
+import { formatPrice } from "@/lib/format"
 
 /** Texto plano, una sola línea, cortado en límite de palabra. */
 export function truncate(text: string, max: number): string {
@@ -179,7 +180,7 @@ export function productJsonLd(product: Product, categoryName: string) {
             "@type": "Offer",
             url,
             priceCurrency: "USD",
-            price: product.price.toFixed(2),
+            price: formatPrice(product.price),
             availability:
               product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             itemCondition: "https://schema.org/NewCondition",

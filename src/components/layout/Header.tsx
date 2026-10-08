@@ -37,6 +37,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
   const searchContainerRef = useRef<HTMLDivElement>(null)
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const suggestionsAbortRef = useRef<AbortController | null>(null)
   const lastScrollY = useRef(0)
   const itemCount = useCartStore((state) => state.getItemCount())
   const favoriteCount = useFavoritesStore((state) => state.getItemCount())
@@ -61,21 +62,25 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
 
   // Cargar sugerencias (populares o coincidentes)
   const fetchSuggestions = useCallback(async (query: string) => {
+    // Cancela la búsqueda anterior: una respuesta lenta no debe pisar a la nueva.
+    suggestionsAbortRef.current?.abort()
+    const controller = new AbortController()
+    suggestionsAbortRef.current = controller
     setSuggestionsLoading(true)
     try {
       const url = query.trim()
         ? `/api/search/suggestions?q=${encodeURIComponent(query.trim())}`
         : "/api/search/suggestions"
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: controller.signal })
       if (res.ok) {
         const data = await res.json()
         setSuggestedProducts(data.products || [])
         setSuggestedCategories(data.categories || [])
       }
     } catch (err) {
-      console.error("Error fetching suggestions:", err)
+      if ((err as Error).name !== "AbortError") console.error("Error fetching suggestions:", err)
     } finally {
-      setSuggestionsLoading(false)
+      if (suggestionsAbortRef.current === controller) setSuggestionsLoading(false)
     }
   }, [])
 

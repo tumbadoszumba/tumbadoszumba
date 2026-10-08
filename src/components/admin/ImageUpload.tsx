@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Image from "next/image"
-import { Upload, X, Loader2, ImagePlus } from "lucide-react"
+import { X, Loader2, ImagePlus, ClipboardPaste } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getPastedImages, readClipboardImages } from "@/lib/clipboard-images"
 
 interface UploadedImage {
   url: string
@@ -20,16 +21,21 @@ interface ImageUploadProps {
 export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleUpload = useCallback(
-    async (files: FileList | null) => {
+    async (files: FileList | File[] | null) => {
       if (!files || files.length === 0) return
 
       const remainingSlots = maxImages - value.length
-      if (remainingSlots <= 0) return
+      if (remainingSlots <= 0) {
+        setError(`Ya tienes ${maxImages} imágenes, el máximo. Quita una para agregar otra.`)
+        return
+      }
 
       const filesToUpload = Array.from(files).slice(0, remainingSlots)
       setUploading(true)
+      setError(null)
 
       try {
         const uploadPromises = filesToUpload.map(async (file) => {
@@ -53,12 +59,41 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
         onChange([...value, ...results])
       } catch (error) {
         console.error("Error uploading images:", error)
+        setError(error instanceof Error ? error.message : "Error al subir imagen")
       } finally {
         setUploading(false)
       }
     },
     [value, onChange, maxImages]
   )
+
+  // Ctrl+V / Cmd+V en cualquier parte del formulario sube las imágenes copiadas
+  // (ej. "Copiar imagen" en Google). El texto se sigue pegando normal en los campos.
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      if (uploading) return
+      const images = getPastedImages(e)
+      if (images.length === 0) return
+      e.preventDefault()
+      handleUpload(images)
+    }
+    window.addEventListener("paste", handlePaste)
+    return () => window.removeEventListener("paste", handlePaste)
+  }, [handleUpload, uploading])
+
+  async function handlePasteButton() {
+    setError(null)
+    try {
+      const images = await readClipboardImages()
+      if (images.length === 0) {
+        setError("No hay ninguna imagen copiada. Copia una imagen y vuelve a intentarlo.")
+        return
+      }
+      handleUpload(images)
+    } catch {
+      setError("El navegador no permitió leer el portapapeles. Prueba pegando con Ctrl+V.")
+    }
+  }
 
   const handleRemove = useCallback(
     async (index: number) => {
@@ -160,6 +195,11 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
                 Arrastra imágenes aquí o haz clic para seleccionar
               </p>
               <p className="text-xs text-muted-foreground">
+                o copia una imagen (de Google, WhatsApp, una captura…) y pégala con{" "}
+                <kbd className="rounded border bg-muted px-1 font-mono text-[11px]">Ctrl</kbd>+
+                <kbd className="rounded border bg-muted px-1 font-mono text-[11px]">V</kbd>
+              </p>
+              <p className="text-xs text-muted-foreground">
                 JPG, PNG, WebP o GIF (máx. 5MB)
               </p>
               <p className="text-xs text-muted-foreground">
@@ -177,6 +217,23 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
           />
         </div>
       )}
+
+      {value.length < maxImages && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handlePasteButton}
+            disabled={uploading}
+          >
+            <ClipboardPaste className="mr-2 h-4 w-4" />
+            Pegar imagen
+          </Button>
+        </div>
+      )}
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
 }

@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Product } from "@/types"
 import { useCartStore } from "@/stores/cart-store"
 import { useFavoritesStore } from "@/stores/favorites-store"
+import { formatPrice } from "@/lib/format"
 
 interface ProductCardProps {
   product: Product
@@ -138,11 +139,11 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.showPrice !== false ? (
             <>
               <span className="text-base font-bold text-foreground">
-                ${product.price.toFixed(2)}
+                ${formatPrice(product.price)}
               </span>
               {hasDiscount && (
                 <span className="text-xs text-muted-foreground line-through">
-                  ${product.originalPrice!.toFixed(2)}
+                  ${formatPrice(product.originalPrice!)}
                 </span>
               )}
             </>

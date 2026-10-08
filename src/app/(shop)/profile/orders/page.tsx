@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUserStore } from "@/stores/user-store"
+import { formatPrice } from "@/lib/format"
 
 const statusConfig = {
   pending: { label: "Pendiente", variant: "secondary" as const },
@@ -130,7 +131,7 @@ export default function OrdersPage() {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{item.name}</p>
                           <p className="text-sm">
-                            $ {item.price.toFixed(2)} x {item.quantity}
+                            $ {formatPrice(item.price)} x {item.quantity}
                           </p>
                         </div>
                       </div>

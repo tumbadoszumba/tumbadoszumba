@@ -10,10 +10,12 @@ import {
   Check,
   Search,
   ImageOff,
+  ClipboardPaste,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { getPastedImages, readClipboardImages } from "@/lib/clipboard-images"
 
 interface MediaItem {
   id: string
@@ -60,7 +62,7 @@ export default function MediaLibraryPage() {
     }
   }
 
-  const handleUpload = useCallback(async (files: FileList | null) => {
+  const handleUpload = useCallback(async (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return
     setUploading(true)
     setError(null)
@@ -89,6 +91,33 @@ export default function MediaLibraryPage() {
       setUploading(false)
     }
   }, [])
+
+  // Ctrl+V / Cmd+V en cualquier parte de la página sube las imágenes copiadas.
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      if (uploading) return
+      const images = getPastedImages(e)
+      if (images.length === 0) return
+      e.preventDefault()
+      handleUpload(images)
+    }
+    window.addEventListener("paste", handlePaste)
+    return () => window.removeEventListener("paste", handlePaste)
+  }, [handleUpload, uploading])
+
+  async function handlePasteButton() {
+    setError(null)
+    try {
+      const images = await readClipboardImages()
+      if (images.length === 0) {
+        setError("No hay ninguna imagen copiada. Copia una imagen y vuelve a intentarlo.")
+        return
+      }
+      handleUpload(images)
+    } catch {
+      setError("El navegador no permitió leer el portapapeles. Prueba pegando con Ctrl+V.")
+    }
+  }
 
   async function handleDelete(id: string) {
     if (!confirm("¿Eliminar esta imagen? Esta acción no se puede deshacer.")) return
@@ -131,12 +160,24 @@ export default function MediaLibraryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Media</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Sube y administra las imágenes del sitio (banners, secciones, promociones). Cada imagen
-          tiene una URL que puedes copiar y usar donde la necesites.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Media</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Sube y administra las imágenes del sitio (banners, secciones, promociones). Cada imagen
+            tiene una URL que puedes copiar y usar donde la necesites.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handlePasteButton}
+          disabled={uploading}
+          className="shrink-0"
+        >
+          <ClipboardPaste className="mr-2 h-4 w-4" />
+          Pegar imagen
+        </Button>
       </div>
 
       {error && (
@@ -164,6 +205,11 @@ export default function MediaLibraryPage() {
           <>
             <ImagePlus className="h-10 w-10 text-muted-foreground" />
             <p className="mt-2 text-sm font-medium">Arrastra imágenes aquí o haz clic para seleccionar</p>
+            <p className="text-xs text-muted-foreground">
+              También puedes copiar una imagen (WhatsApp, Canva, una captura…) y pegarla con{" "}
+              <kbd className="rounded border bg-muted px-1 font-mono text-[11px]">Ctrl</kbd>+
+              <kbd className="rounded border bg-muted px-1 font-mono text-[11px]">V</kbd>
+            </p>
             <p className="text-xs text-muted-foreground">JPG, PNG, WebP o GIF (máx. 5MB por imagen)</p>
           </>
         )}

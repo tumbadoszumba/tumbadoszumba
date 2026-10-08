@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { transformProduct } from "@/lib/transformers"
 import { invalidateProducts } from "@/lib/cache-tags"
 import { getSoldQuantityByProduct } from "@/lib/sales"
+import { searchProductIds } from "@/lib/search"
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,25 +64,11 @@ export async function GET(request: NextRequest) {
       where.comparePrice = { not: null, gt: 0 }
     }
 
+    // Búsqueda (ver src/lib/search.ts): IDs ordenados por relevancia.
+    let searchIds: string[] | null = null
     if (search && search.trim()) {
-      const sanitized = search.trim()
-      // Full-text search nativo en PostgreSQL usando searchVector y plainto_tsquery('spanish')
-      // Combinado con coincidencia en categoría, marca y specs para máxima cobertura
-      const matches = await prisma.$queryRaw<{ id: string }[]>`
-        SELECT p.id
-        FROM "products" p
-        LEFT JOIN "categories" c ON c.id = p."categoryId"
-        LEFT JOIN "brands" b ON b.id = p."brandId"
-        WHERE p."isActive" = true
-          AND (
-            p."searchVector" @@ plainto_tsquery('spanish', ${sanitized})
-            OR c.name ILIKE ${'%' + sanitized + '%'}
-            OR b.name ILIKE ${'%' + sanitized + '%'}
-            OR p.specs::text ILIKE ${'%' + sanitized + '%'}
-            OR p.name ILIKE ${'%' + sanitized + '%'}
-          )
-      `
-      where.id = { in: matches.map((m) => m.id) }
+      searchIds = await searchProductIds(search, { inStockOnly: !includeAll, limit: 500 })
+      where.id = { in: searchIds }
     }
 
 
@@ -92,7 +79,17 @@ export async function GET(request: NextRequest) {
     let products
     let total
 
-    if (sortBy === "popular" || sortBy === "best-selling") {
+    if (searchIds && (sortBy === "newest" || sortBy === "relevance")) {
+      // Con búsqueda, el orden por defecto es por relevancia (el de searchIds).
+      const matching = await prisma.product.findMany({
+        where,
+        include: { category: true, brand: true },
+      })
+      const rank = new Map(searchIds.map((id, i) => [id, i]))
+      const sorted = matching.sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
+      total = sorted.length
+      products = takeNum ? sorted.slice(skipNum, skipNum + takeNum) : sorted.slice(skipNum)
+    } else if (sortBy === "popular" || sortBy === "best-selling") {
       // Ordenar por ventas reales no es un simple orderBy de columna: hay
       // que traer los productos que cumplen los filtros, sumar sus unidades
       // vendidas (OrderItem de pedidos confirmados) y recién ahí ordenar y

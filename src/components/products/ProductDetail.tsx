@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Product } from "@/types"
 import { useCartStore } from "@/stores/cart-store"
 import { useFavoritesStore } from "@/stores/favorites-store"
+import { formatPrice } from "@/lib/format"
 
 interface ProductDetailProps {
   product: Product
@@ -78,11 +79,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
         {product.showPrice !== false ? (
           <>
             <span className="text-3xl font-bold text-primary">
-              ${product.price.toFixed(2)}
+              ${formatPrice(product.price)}
             </span>
             {hasDiscount && (
               <span className="text-lg text-muted-foreground line-through">
-                ${product.originalPrice!.toFixed(2)}
+                ${formatPrice(product.originalPrice!)}
               </span>
             )}
           </>

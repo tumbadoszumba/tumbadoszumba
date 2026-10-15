@@ -2,8 +2,10 @@ import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
 
-// Routes that require authentication
-const protectedRoutes = ["/profile", "/checkout", "/cart"]
+// Routes that require authentication. El carrito (/cart) es público: sin
+// sesión se pide nombre y WhatsApp al pedir por WhatsApp (se guarda una
+// proforma con código).
+const protectedRoutes = ["/profile", "/checkout"]
 
 // Routes only for admin users
 const adminRoutes = ["/admin"]
@@ -64,5 +66,5 @@ export const config = {
   // significaba descifrar el JWT de sesión en cada visita sin necesitarlo.
   // Ahora solo entra en las rutas que de verdad chequean algo arriba:
   // protectedRoutes, adminRoutes y guestRoutes.
-  matcher: ["/profile/:path*", "/checkout/:path*", "/cart/:path*", "/admin/:path*", "/login", "/register"],
+  matcher: ["/profile/:path*", "/checkout/:path*", "/admin/:path*", "/login", "/register"],
 }

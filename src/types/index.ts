@@ -1,4 +1,7 @@
 export interface Product {
+  // Código y modelo del sistema de facturación (los precios internos no van aquí).
+  code?: string | null
+  model?: string | null
   id: string
   name: string
   slug: string
@@ -92,8 +95,14 @@ export interface ProformaItem {
 
 export interface Proforma {
   id: string
+  requestCode?: string | null
   status: ProformaStatus
-  area: number
+  source?: "CALCULADORA" | "CARRITO" | "VENDEDOR"
+  createdBySellerName?: string | null
+  branchId?: string | null
+  sellerId?: string | null
+  // Solo las proformas de la calculadora tienen área y calculadora.
+  area: number | null
   contactName?: string | null
   contactPhone?: string | null
   contactEmail?: string | null
@@ -106,9 +115,12 @@ export interface Proforma {
   adjustmentType?: ProformaAdjustmentType | null
   adjustmentDirection?: ProformaAdjustmentDirection | null
   adjustmentValue?: number | null
-  calculator: { id: string; name: string }
+  calculator: { id: string; name: string } | null
   items: ProformaItem[]
-  user?: { id: string; name: string; email: string; phone?: string | null }
+  // Historial: cada PDF generado con datos distintos (la versión es interna).
+  versions?: { id: string; version: number; total: number; sellerName: string; branchName: string; createdAt: string }[]
+  // null si el cliente pidió la proforma sin iniciar sesión
+  user?: { id: string; name: string; email: string; phone?: string | null } | null
   itemsTotal?: number
   originalTotal?: number
   adjustmentAmount?: number

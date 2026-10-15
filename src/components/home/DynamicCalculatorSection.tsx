@@ -3,7 +3,6 @@
 import { SITE } from "@/lib/site"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -101,6 +100,9 @@ const contactSchema = z.object({
   contactEmail: z.string().trim().email("Correo inválido").optional().or(z.literal("")),
 })
 
+// Sin sesión, el vendedor solo sabe a quién responder por estos datos.
+const PHONE_RE = /^\+?[\d\s-]{7,20}$/
+
 type ContactForm = z.infer<typeof contactSchema>
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -151,8 +153,8 @@ function CalculatorSkeleton() {
 }
 
 export function DynamicCalculatorSection() {
-  const { data: session, status: sessionStatus } = useSession()
-  const router = useRouter()
+  const { data: session } = useSession()
+  const isGuest = !session?.user
   const [calculators, setCalculators] = useState<Calculator[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCalcId, setSelectedCalcId] = useState<string>("")
@@ -166,6 +168,8 @@ export function DynamicCalculatorSection() {
   const {
     register,
     handleSubmit,
+    setError,
+    formState: { errors },
     reset: resetContactForm,
   } = useForm<ContactForm>({
     resolver: zodResolver(contactSchema),
@@ -224,11 +228,6 @@ export function DynamicCalculatorSection() {
   }
 
   function handleCalc() {
-    if (sessionStatus !== "authenticated") {
-      router.push(`/login?callbackUrl=${encodeURIComponent("/")}`)
-      return
-    }
-
     if (!selectedCalcId || !area) {
       alert("Por favor selecciona una calculadora e ingresa el área")
       return
@@ -285,9 +284,25 @@ export function DynamicCalculatorSection() {
     const calculator = calculators.find(c => c.id === selectedCalcId)
     if (!calculator) return
 
+    if (isGuest) {
+      let invalid = false
+      if (!data.contactName || data.contactName.length < 2) {
+        setError("contactName", { message: "Ingresa tu nombre" })
+        invalid = true
+      }
+      if (!data.contactPhone || !PHONE_RE.test(data.contactPhone)) {
+        setError("contactPhone", { message: "Ingresa un número de WhatsApp válido" })
+        invalid = true
+      }
+      if (invalid) return
+    }
+
+    // Primero se guarda la proforma: el código que va en el WhatsApp solo
+    // existe si se guardó bien.
+    let requestCode: string
     setSubmitting(true)
     try {
-      await fetch("/api/proformas", {
+      const res = await fetch("/api/proformas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -304,8 +319,16 @@ export function DynamicCalculatorSection() {
           })),
         }),
       })
+      const body = await res.json().catch(() => null)
+      if (!res.ok || !body?.requestCode) {
+        alert(body?.error || "No se pudo enviar la solicitud. Inténtalo de nuevo.")
+        return
+      }
+      requestCode = body.requestCode
     } catch (err) {
       console.error("Error saving proforma:", err)
+      alert("No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.")
+      return
     } finally {
       setSubmitting(false)
     }
@@ -318,16 +341,22 @@ export function DynamicCalculatorSection() {
       ? ` (${APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha ${PLANCHA_TABS.find((p) => p.key === planchaType)!.label})`
       : ""
 
+    const phone = data.contactPhone?.trim()
     const msg = encodeURIComponent(
       `🏗️ *Solicitud de Proforma - Tumbados Zumba*\n\n` +
+      `🔖 *Código:* ${requestCode}\n` +
       `👤 *Cliente:* ${data.contactName?.trim() || session?.user?.name || "Sin nombre"}\n` +
+      (phone ? `📱 *WhatsApp:* ${phone}\n` : "") +
       `📐 *Sistema:* ${calculator.name}${systemDetail}\n` +
       `📏 *Área:* ${fmt(parseFloat(area))} m²\n\n` +
       `📦 *Materiales (${results.length}):*\n${itemsList}\n\n` +
       `Por favor cotizar. ¡Gracias! 🙏`
     )
 
-    window.open(`https://wa.me/${WA_NUMBER}?text=${msg}`, "_blank")
+    // Algunos navegadores (Safari en iPhone) bloquean la pestaña nueva porque se
+    // abre después de esperar al guardado; en ese caso se abre en la misma.
+    const waUrl = `https://wa.me/${WA_NUMBER}?text=${msg}`
+    if (!window.open(waUrl, "_blank")) window.location.href = waUrl
   })
 
   if (!loading && calculators.length === 0) {
@@ -621,7 +650,8 @@ export function DynamicCalculatorSection() {
               <input
                 type="text"
                 {...register("contactName")}
-                placeholder="Tu nombre (opcional)"
+                placeholder={isGuest ? "Tu nombre" : "Tu nombre (opcional)"}
+                aria-invalid={!!errors.contactName}
                 className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.05)",
@@ -630,10 +660,14 @@ export function DynamicCalculatorSection() {
                 onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
               />
+              {errors.contactName && (
+                <p className="-mt-2 text-xs" style={{ color: "#ff9b7a" }}>{errors.contactName.message}</p>
+              )}
               <input
                 type="tel"
                 {...register("contactPhone")}
-                placeholder="Tu número de WhatsApp (opcional)"
+                placeholder={isGuest ? "Tu número de WhatsApp" : "Tu número de WhatsApp (opcional)"}
+                aria-invalid={!!errors.contactPhone}
                 className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.05)",
@@ -642,6 +676,9 @@ export function DynamicCalculatorSection() {
                 onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
               />
+              {errors.contactPhone && (
+                <p className="-mt-2 text-xs" style={{ color: "#ff9b7a" }}>{errors.contactPhone.message}</p>
+              )}
               <input
                 type="email"
                 {...register("contactEmail")}

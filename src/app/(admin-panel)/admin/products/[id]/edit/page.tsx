@@ -49,6 +49,11 @@ const productSchema = z.object({
   description: z.string().min(1, "La descripcion es requerida"),
   price: z.number({ error: "El precio es requerido" }).min(0, "El precio debe ser mayor a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)"),
   comparePrice: z.number().min(0, "El precio anterior debe ser mayor o igual a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)").optional(),
+  // Precios internos (solo admin y proformas) y datos del sistema de facturación.
+  cashPrice: z.number().min(0, "Debe ser mayor o igual a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)").nullable().optional(),
+  costPrice: z.number().min(0, "Debe ser mayor o igual a 0").refine(hasMaxThreeDecimals, "Máximo 3 decimales (ej. 0.015)").nullable().optional(),
+  code: z.string().trim().optional(),
+  model: z.string().trim().optional(),
   stock: z.number({ error: "El stock es requerido" }).min(0, "El stock debe ser mayor o igual a 0"),
   categoryId: z.string().min(1, "La categoria es requerida"),
   brandId: z.string().optional(),
@@ -137,11 +142,14 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesRes, brandsRes, productRes] = await Promise.all([
+        const [categoriesRes, brandsRes, productRes, pricesRes] = await Promise.all([
           fetch("/api/categories"),
           fetch("/api/brands"),
           fetch(`/api/products/${id}`),
+          // Precios internos (contado y costo): solo por la ruta del admin.
+          fetch(`/api/admin/products/catalog?id=${id}`),
         ])
+        const internal = pricesRes.ok ? (await pricesRes.json()).products?.[0] : null
 
         const categoriesData: Category[] = await categoriesRes.json()
         const brandsData: Brand[] = await brandsRes.json()
@@ -181,6 +189,10 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             description: productData.description || "",
             price: productData.price,
             comparePrice: productData.originalPrice,
+            cashPrice: internal?.cashPrice ?? null,
+            costPrice: internal?.costPrice ?? null,
+            code: productData.code ?? "",
+            model: productData.model ?? "",
             stock: productData.stock,
             categoryId: productData.categoryId || categoriesData.find(c => c.slug === productData.category)?.id || "",
             brandId: productData.brandId || brandsData.find(b => b.name === productData.brand)?.id || "",
@@ -521,7 +533,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="price">Precio ($ USD)</Label>
+                <Label htmlFor="price">Precio especial / público ($ USD)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -559,6 +571,51 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                 {errors.stock && (
                   <p className="text-sm text-destructive">{errors.stock.message}</p>
                 )}
+              </div>
+            </div>
+            {/* Precios internos: no se muestran en la tienda; se pueden usar al generar una proforma. */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="cashPrice">Precio contado (interno)</Label>
+                <Input
+                  id="cashPrice"
+                  type="number"
+                  step="0.001"
+                  placeholder="Opcional"
+                  {...register("cashPrice", {
+                    setValueAs: (v) => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v)),
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">Solo admin y proformas</p>
+                {errors.cashPrice && (
+                  <p className="text-sm text-destructive">{errors.cashPrice.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costPrice">Precio compra / costo (interno)</Label>
+                <Input
+                  id="costPrice"
+                  type="number"
+                  step="0.001"
+                  placeholder="Opcional"
+                  {...register("costPrice", {
+                    setValueAs: (v) => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v)),
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">Nunca se muestra al público</p>
+                {errors.costPrice && (
+                  <p className="text-sm text-destructive">{errors.costPrice.message}</p>
+                )}
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="code">Código</Label>
+                <Input id="code" placeholder="Código del sistema de facturación" {...register("code")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="model">Modelo</Label>
+                <Input id="model" placeholder="Opcional" {...register("model")} />
               </div>
             </div>
           </CardContent>

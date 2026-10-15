@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { computeTotals } from "@/lib/proforma-totals"
 import { renderProformaPdf } from "@/lib/pdf/ProformaPdf"
 import { isValidPin, verifyPin } from "@/lib/seller-pin"
+import { saveVersionIfChanged } from "@/lib/proforma-versions"
 
 type Params = Promise<{ id: string }>
 
@@ -55,15 +56,13 @@ export async function POST(request: NextRequest, { params }: { params: Params })
     return NextResponse.json({ error: "Proforma no encontrada" }, { status: 404 })
   }
 
-  // Asigna el número la primera vez (correlativo del local); si ya tenía uno,
-  // solo se actualiza quién/dónde la volvió a generar.
+  // Asigna el número la primera vez: un solo correlativo para todos los locales
+  // y vendedores (secuencia de la BD). Si ya tenía uno, solo se actualiza
+  // quién/dónde la volvió a generar.
   let proformaNumber = proforma.proformaNumber
   if (proformaNumber == null) {
-    const branch = await prisma.branch.update({
-      where: { id: branchId },
-      data: { nextProformaNumber: { increment: 1 } },
-    })
-    proformaNumber = branch.nextProformaNumber - 1
+    const [{ n }] = await prisma.$queryRaw<{ n: bigint }[]>`SELECT nextval('proforma_number_seq') AS n`
+    proformaNumber = Number(n)
   }
   await prisma.proforma.update({
     where: { id },
@@ -99,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: Params })
         }`
       : null
 
-  const pdf = await renderProformaPdf({
+  const pdfData = {
     number: String(proformaNumber),
     createdAt: proforma.createdAt,
     client: {
@@ -120,7 +119,10 @@ export async function POST(request: NextRequest, { params }: { params: Params })
     subtotal: totals.subtotal,
     iva: totals.iva,
     total: totals.total,
-  })
+  }
+
+  await saveVersionIfChanged(id, pdfData)
+  const pdf = await renderProformaPdf(pdfData)
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

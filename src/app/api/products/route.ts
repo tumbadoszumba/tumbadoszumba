@@ -179,6 +179,13 @@ export async function POST(request: NextRequest) {
         warrantyPeriod: body.warranty && body.warrantyPeriod ? String(body.warrantyPeriod) : null,
         categoryId: body.categoryId,
         brandId: body.brandId || null,
+        // Datos del sistema de facturación: código, modelo y precios internos.
+        code: body.code ? String(body.code).trim() : null,
+        model: body.model ? String(body.model).trim() : null,
+        cashPrice: body.cashPrice != null && body.cashPrice !== "" ? Number(body.cashPrice) : null,
+        costPrice: body.costPrice != null && body.costPrice !== "" ? Number(body.costPrice) : null,
+        // Por defecto visible; la importación crea productos ocultos.
+        isActive: body.isActive ?? true,
       },
       include: {
         category: true,
@@ -190,6 +197,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(transformProduct(product), { status: 201 })
   } catch (error) {
+    if ((error as { code?: string })?.code === "P2002") {
+      return NextResponse.json({ error: "Ese código ya lo usa otro producto" }, { status: 409 })
+    }
     console.error("Error creating product:", error)
     return NextResponse.json(
       { error: "Error creating product" },

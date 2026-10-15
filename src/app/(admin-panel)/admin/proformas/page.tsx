@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Search, FileText, RefreshCcw, Phone, Trash2, RotateCcw, X } from "lucide-react"
+import { Search, FileText, RefreshCcw, Phone, Trash2, RotateCcw, X, FilePlus2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAdminStore } from "@/stores/admin-store"
+import { proformaOriginLabel } from "@/lib/proforma-origin"
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   PENDIENTE: { label: "Pendiente", className: "bg-yellow-500 text-white" },
@@ -59,22 +60,23 @@ function AdminProformasContent() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [view, setView] = useState<"activas" | "papelera">("activas")
 
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+
+  // La búsqueda va al servidor para encontrar también proformas que no están
+  // entre las cargadas (ej. el código que llegó por WhatsApp hace semanas).
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   useEffect(() => {
     fetchProformas({
       status: statusFilter === "all" ? undefined : statusFilter,
       userId: userIdParam,
+      q: debouncedQuery || undefined,
       trash: view === "papelera",
     })
-  }, [statusFilter, userIdParam, view, fetchProformas])
-
-  const filteredProformas = proformas.filter((p) => {
-    const q = searchQuery.toLowerCase()
-    return (
-      p.user.name.toLowerCase().includes(q) ||
-      p.user.email.toLowerCase().includes(q) ||
-      p.calculator.name.toLowerCase().includes(q)
-    )
-  })
+  }, [statusFilter, userIdParam, debouncedQuery, view, fetchProformas])
 
   async function handleTrash(id: string) {
     if (!confirm("¿Mover esta proforma a la papelera? Se eliminará automáticamente en 30 días.")) return
@@ -121,6 +123,7 @@ function AdminProformasContent() {
             fetchProformas({
               status: statusFilter === "all" ? undefined : statusFilter,
               userId: userIdParam,
+              q: debouncedQuery || undefined,
               trash: view === "papelera",
             })
           }
@@ -158,6 +161,13 @@ function AdminProformasContent() {
             </Badge>
           )}
         </button>
+        <Link
+          href="/admin/proformas/new"
+          className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
+        >
+          <FilePlus2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Generar proforma
+        </Link>
       </div>
 
       {view === "activas" && (
@@ -199,7 +209,7 @@ function AdminProformasContent() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
           <Input
-            placeholder="Buscar por cliente o calculadora..."
+            placeholder="Buscar por código (TZ-…), cliente o teléfono..."
             className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -225,8 +235,9 @@ function AdminProformasContent() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Código</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Calculadora</TableHead>
+                <TableHead>Origen</TableHead>
                 <TableHead>Área</TableHead>
                 <TableHead>Materiales</TableHead>
                 <TableHead>Teléfono</TableHead>
@@ -238,35 +249,49 @@ function AdminProformasContent() {
             <TableBody>
               {loading && proformas.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     Cargando proformas...
                   </TableCell>
                 </TableRow>
-              ) : filteredProformas.length === 0 ? (
+              ) : proformas.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" strokeWidth={1.75} />
                     {view === "activas" ? "No se encontraron proformas" : "La papelera está vacía"}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredProformas.map((p) => {
+                proformas.map((p) => {
                   const statusInfo = statusConfig[p.status] ?? {
                     label: p.status,
                     className: "bg-gray-400 text-white",
                   }
                   return (
                     <TableRow key={p.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono text-sm font-semibold whitespace-nowrap">
+                        <Link href={`/admin/proformas/${p.id}`}>{p.requestCode ?? "—"}</Link>
+                      </TableCell>
                       <TableCell>
                         <Link href={`/admin/proformas/${p.id}`} className="block">
-                          <p className="font-medium text-sm">{p.user.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.user.email}</p>
+                          {p.user ? (
+                            <>
+                              <p className="font-medium text-sm">{p.user.name}</p>
+                              <p className="text-xs text-muted-foreground">{p.user.email}</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-medium text-sm">{p.contactName || "Sin nombre"}</p>
+                              <Badge variant="outline" className="mt-0.5 text-[10px] text-muted-foreground">
+                                Sin cuenta
+                              </Badge>
+                            </>
+                          )}
                         </Link>
                       </TableCell>
                       <TableCell className="text-sm">
-                        <Link href={`/admin/proformas/${p.id}`}>{p.calculator.name}</Link>
+                        <Link href={`/admin/proformas/${p.id}`}>{proformaOriginLabel(p)}</Link>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{p.area} m²</TableCell>
+                      <TableCell className="font-mono text-sm">{p.area != null ? `${p.area} m²` : "—"}</TableCell>
                       <TableCell className="font-mono text-sm">{p.itemCount}</TableCell>
                       <TableCell className="text-sm">
                         {p.contactPhone ? (

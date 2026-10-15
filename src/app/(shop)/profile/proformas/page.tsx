@@ -88,14 +88,17 @@ export default function ProformasPage() {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <CardTitle className="text-base">{proforma.calculator.name}</CardTitle>
+                      <CardTitle className="text-base">
+                        {proforma.source === "CARRITO" ? "Pedido del carrito" : proforma.calculator?.name ?? "Proforma"}
+                      </CardTitle>
                       <CardDescription>
+                        {proforma.requestCode && `${proforma.requestCode} · `}
                         {new Date(proforma.createdAt).toLocaleDateString("es-EC", {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}{" "}
-                        · {proforma.area} m²
+                        })}
+                        {proforma.area != null && ` · ${proforma.area} m²`}
                       </CardDescription>
                     </div>
                     <Badge variant={status.variant}>{status.label}</Badge>

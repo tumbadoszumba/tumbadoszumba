@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ProductPickerDialog } from "@/components/admin/ProductPickerDialog"
+import { proformaOriginLabel } from "@/lib/proforma-origin"
 import type { Proforma, ProformaStatus, ProformaAdjustmentType, ProformaAdjustmentDirection, Branch } from "@/types"
 import { formatPrice, roundPrice } from "@/lib/format"
 
@@ -270,6 +271,12 @@ export default function AdminProformaDetailPage() {
       setContactPhone(data.contactPhone || "")
       setContactEmail(data.contactEmail || "")
       setContactDocument(data.contactDocument || "")
+      // Preselecciona el local y el vendedor que ya tiene la proforma (el que la
+      // armó o el último que generó el PDF); la clave se pide igual.
+      if (data.branchId && data.sellerId) {
+        setSelectedBranchId((prev) => prev || data.branchId!)
+        setSelectedSellerId((prev) => prev || data.sellerId!)
+      }
     } catch (err) {
       alert("Error al cargar la proforma")
       router.back()
@@ -407,8 +414,10 @@ export default function AdminProformaDetailPage() {
     const msg = encodeURIComponent(
       `🏗️ *Proforma - Tumbados Zumba*\n\n` +
       `👤 *Cliente:* ${contactName || proforma.user?.name || ""}\n` +
-      `📐 *Sistema:* ${proforma.calculator.name}\n` +
-      `📏 *Área:* ${proforma.area} m²\n\n` +
+      (proforma.requestCode ? `🔖 *Código:* ${proforma.requestCode}\n` : "") +
+      (proforma.calculator ? `📐 *Sistema:* ${proforma.calculator.name}\n` : "") +
+      (proforma.area != null ? `📏 *Área:* ${proforma.area} m²\n` : "") +
+      `\n` +
       `📦 *Materiales:*\n${itemsList}\n\n` +
       `💰 *Total estimado: $${(proforma.total ?? 0).toFixed(2)}*\n\n` +
       `Quedamos atentos. ¡Gracias! 🙏`
@@ -457,9 +466,19 @@ export default function AdminProformaDetailPage() {
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{proforma.calculator.name}</h1>
+          <h1 className="text-2xl font-bold">
+            {proformaOriginLabel(proforma)}
+            {proforma.requestCode && (
+              <span className="ml-3 font-mono text-base font-semibold text-muted-foreground">
+                {proforma.requestCode}
+              </span>
+            )}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {proforma.user?.name} · {proforma.user?.email} · {proforma.area} m²
+            {proforma.user
+              ? `${proforma.user.name} · ${proforma.user.email}`
+              : `${proforma.contactName || "Sin nombre"} · Sin cuenta`}
+            {proforma.area != null && ` · ${proforma.area} m²`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1003,6 +1022,7 @@ export default function AdminProformaDetailPage() {
               <Input
                 type="password"
                 inputMode="numeric"
+                autoComplete="new-password"
                 maxLength={6}
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -1037,6 +1057,52 @@ export default function AdminProformaDetailPage() {
               Descargar
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Historial</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Cada vez que se genera el PDF con cambios queda una versión nueva (mismo número de proforma).
+          </p>
+        </CardHeader>
+        <CardContent>
+          {!proforma.versions?.length ? (
+            <p className="text-sm text-muted-foreground">Todavía no se ha generado ningún PDF.</p>
+          ) : (
+            <div className="divide-y rounded-md border">
+              {proforma.versions.map((v) => (
+                <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <div>
+                    <p className="font-medium">
+                      Versión {v.version}
+                      <span className="ml-2 font-mono text-muted-foreground">${v.total.toFixed(2)}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(v.createdAt).toLocaleString("es-EC", { dateStyle: "medium", timeStyle: "short" })}
+                      {" · "}
+                      {v.sellerName} en {v.branchName}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={`/api/admin/proformas/${id}/versions/${v.id}/pdf`} target="_blank" rel="noopener">
+                        <FileText className="h-4 w-4 mr-1" />
+                        Ver PDF
+                      </a>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={`/api/admin/proformas/${id}/versions/${v.id}/pdf?download=1`}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Descargar
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

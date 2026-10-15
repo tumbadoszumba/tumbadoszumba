@@ -43,6 +43,14 @@ enum ProformaStatus {
   ENVIADA
 }
 
+// De dónde salió la proforma: la calculadora de la tienda, el carrito
+// (pedido por WhatsApp) o un vendedor desde el admin.
+enum ProformaSource {
+  CALCULADORA
+  CARRITO
+  VENDEDOR
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -98,6 +106,13 @@ model Product {
   description  String?
   price        Decimal  @db.Decimal(12, 3)
   comparePrice Decimal? @db.Decimal(12, 3)
+  // Precios internos (solo admin y proformas; nunca en la API pública).
+  // price es el precio público (Pre_Especial del sistema de facturación).
+  cashPrice    Decimal? @db.Decimal(12, 3) // Pre_Contado
+  costPrice    Decimal? @db.Decimal(12, 3) // Pre_Compra (costo)
+  // Código del sistema de facturación (único) y modelo.
+  code         String?  @unique
+  model        String?
   stock        Int      @default(0)
   images       String[]
   specs        Json?
@@ -122,6 +137,7 @@ model Product {
   brand   Brand?  @relation(fields: [brandId], references: [id])
 
   orderItems OrderItem[]
+  proformaItems ProformaItem[]
 
   @@index([categoryId])
   @@index([brandId])
@@ -250,8 +266,15 @@ model CalculatorMaterial {
 
 model Proforma {
   id           String         @id @default(cuid())
+  // Código corto (ej. TZ-48213) que viaja en el mensaje de WhatsApp para que el
+  // vendedor encuentre la solicitud en el admin, aunque el cliente no tenga
+  // cuenta. No es el número de proforma del PDF (proformaNumber). Es opcional
+  // en la BD solo para que el sitio anterior siga guardando mientras se publica.
+  requestCode  String?        @unique
   status       ProformaStatus @default(PENDIENTE)
-  area         Decimal        @db.Decimal(10, 2)
+  source       ProformaSource @default(CALCULADORA)
+  // Solo las proformas de la calculadora tienen área.
+  area         Decimal?       @db.Decimal(10, 2)
   contactName  String?
   contactPhone String?
   contactEmail String?
@@ -276,6 +299,9 @@ model Proforma {
   // guardan aparte para que el historial no se pierda si luego se editan o
   // eliminan. No hay una tabla de "generaciones": el PDF se puede volver a
   // descargar las veces que haga falta con el mismo número.
+  // Correlativo único para todos los locales y vendedores (secuencia
+  // proforma_number_seq de la BD); se asigna la primera vez que se genera el PDF.
+  // (sin @unique: hay dos proformas de prueba antiguas con el 100000).
   proformaNumber Int?
   branchId       String?
   branch         Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
@@ -284,13 +310,22 @@ model Proforma {
   seller         Seller? @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   sellerName     String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  // Vendedor que armó la proforma desde el admin (origen VENDEDOR), validado con
+  // su clave. Se guarda el nombre aparte de sellerName, que cambia cada vez que
+  // alguien genera el PDF.
+  createdBySellerName String?
 
-  calculatorId String
-  calculator   Calculator @relation(fields: [calculatorId], references: [id])
+  // Vacío cuando el cliente pidió la proforma sin iniciar sesión; en ese caso
+  // los datos del cliente son los de contacto (contactName, contactPhone).
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  items ProformaItem[]
+  // Vacío en las proformas del carrito o de un vendedor.
+  calculatorId String?
+  calculator   Calculator? @relation(fields: [calculatorId], references: [id], onDelete: Restrict)
+
+  items    ProformaItem[]
+  versions ProformaVersion[]
 
   @@index([userId])
   @@index([status])
@@ -298,6 +333,25 @@ model Proforma {
   @@index([branchId])
   @@index([sellerId])
   @@map("proformas")
+}
+
+// Datos con que se generó cada PDF de una proforma (no el PDF): permite ver y
+// volver a sacar cualquier versión. Se crea una nueva solo si algo cambió. La
+// versión es interna; el PDF lleva siempre el mismo número de proforma.
+model ProformaVersion {
+  id         String   @id @default(cuid())
+  proformaId String
+  proforma   Proforma @relation(fields: [proformaId], references: [id], onDelete: Cascade)
+  version    Int
+  // Lo que recibe renderProformaPdf (cliente, líneas, totales, opciones, vendedor, local).
+  data       Json
+  total      Decimal  @db.Decimal(12, 2)
+  sellerName String
+  branchName String
+  createdAt  DateTime @default(now())
+
+  @@unique([proformaId, version])
+  @@map("proforma_versions")
 }
 
 model ProformaItem {
@@ -320,7 +374,12 @@ model ProformaItem {
   materialId String?
   material   CalculatorMaterial? @relation(fields: [materialId], references: [id], onDelete: SetNull)
 
+  // Producto del catálogo de donde salió la línea (carrito o vendedor).
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
   @@index([proformaId])
+  @@index([productId])
   @@map("proforma_items")
 }
 
@@ -332,6 +391,8 @@ model Branch {
   phone               String?
   address             String?
   active              Boolean  @default(true)
+  // Ya no se usa: la numeración pasó a ser única para todos los locales
+  // (secuencia proforma_number_seq). Se conserva para no perder el dato.
   nextProformaNumber  Int      @default(100000)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

@@ -1,9 +1,15 @@
 "use client"
 
+import { useState } from "react"
+import { useSession } from "next-auth/react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { SITE } from "@/lib/site"
 import { Truck, MessageCircle, AlertCircle } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { CartItem } from "@/types"
 import { StripeCheckoutButton } from "./StripeCheckoutButton"
 import { useCartStore } from "@/stores/cart-store"
@@ -12,8 +18,32 @@ interface CartSummaryProps {
   items: CartItem[]
 }
 
+// Sin sesión, el vendedor solo sabe a quién responder por estos datos.
+const guestContactSchema = z.object({
+  contactName: z.string().trim().min(2, "Ingresa tu nombre"),
+  contactPhone: z
+    .string()
+    .trim()
+    .regex(/^\+?[\d\s-]{7,20}$/, "Ingresa un número de WhatsApp válido"),
+})
+
+type GuestContact = z.infer<typeof guestContactSchema>
+
 export function CartSummary({ items }: CartSummaryProps) {
   const clearCart = useCartStore((state) => state.clearCart)
+  const { data: session } = useSession()
+  const isGuest = !session?.user
+  const [submitting, setSubmitting] = useState(false)
+
+  const {
+    register,
+    trigger,
+    getValues,
+    formState: { errors },
+  } = useForm<GuestContact>({
+    resolver: zodResolver(guestContactSchema),
+    defaultValues: { contactName: "", contactPhone: "" },
+  })
 
   const pricedItems = items.filter((item) => item.product.showPrice !== false)
   const unpricedItems = items.filter((item) => item.product.showPrice === false)
@@ -26,8 +56,46 @@ export function CartSummary({ items }: CartSummaryProps) {
   const total = subtotal + shipping
   const hasUnpricedItems = unpricedItems.length > 0
 
-  const handleWhatsAppOrder = () => {
-    let msg = `👋 Hola, me gustaría realizar el siguiente pedido:\n\n🛒 *Resumen del Pedido:*\n`;
+  const handleWhatsAppOrder = async () => {
+    if (isGuest && !(await trigger())) return
+    const contact = isGuest
+      ? getValues()
+      : { contactName: session?.user?.name ?? "", contactPhone: session?.user?.phone ?? "" }
+
+    // Primero se guarda la proforma: el código que va en el WhatsApp solo
+    // existe si se guardó bien, y el carrito solo se vacía en ese caso.
+    let requestCode: string
+    setSubmitting(true)
+    try {
+      const res = await fetch("/api/proformas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "cart",
+          contactName: contact.contactName || null,
+          contactPhone: contact.contactPhone || null,
+          items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity })),
+        }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok || !body?.requestCode) {
+        alert(body?.error || "No se pudo enviar el pedido. Inténtalo de nuevo.")
+        return
+      }
+      requestCode = body.requestCode
+    } catch (err) {
+      console.error("Error saving cart proforma:", err)
+      alert("No se pudo enviar el pedido. Revisa tu conexión e inténtalo de nuevo.")
+      return
+    } finally {
+      setSubmitting(false)
+    }
+
+    let msg = `👋 Hola, me gustaría realizar el siguiente pedido:\n\n`;
+    msg += `🔖 *Código:* ${requestCode}\n`;
+    if (contact.contactName) msg += `👤 *Cliente:* ${contact.contactName}\n`;
+    if (contact.contactPhone) msg += `📱 *WhatsApp:* ${contact.contactPhone}\n`;
+    msg += `\n🛒 *Resumen del Pedido:*\n`;
 
     items.forEach(item => {
       if (item.product.showPrice !== false) {
@@ -51,8 +119,10 @@ export function CartSummary({ items }: CartSummaryProps) {
 
     const WHATSAPP_NUM = SITE.whatsapp;
     const uri = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`;
-    window.open(uri, "_blank");
     clearCart();
+    // Algunos navegadores (Safari en iPhone) bloquean la pestaña nueva porque se
+    // abre después de esperar al guardado; en ese caso se abre en la misma.
+    if (!window.open(uri, "_blank")) window.location.href = uri;
   };
 
   return (
@@ -101,12 +171,38 @@ export function CartSummary({ items }: CartSummaryProps) {
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
-        <Button 
-          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold" 
+        {isGuest && (
+          <div className="space-y-2">
+            <div>
+              <Input
+                {...register("contactName")}
+                placeholder="Tu nombre"
+                aria-invalid={!!errors.contactName}
+              />
+              {errors.contactName && (
+                <p className="mt-1 text-xs text-destructive">{errors.contactName.message}</p>
+              )}
+            </div>
+            <div>
+              <Input
+                {...register("contactPhone")}
+                type="tel"
+                placeholder="Tu número de WhatsApp"
+                aria-invalid={!!errors.contactPhone}
+              />
+              {errors.contactPhone && (
+                <p className="mt-1 text-xs text-destructive">{errors.contactPhone.message}</p>
+              )}
+            </div>
+          </div>
+        )}
+        <Button
+          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold"
           onClick={handleWhatsAppOrder}
+          disabled={submitting}
         >
           <MessageCircle className="w-4 h-4 mr-2" />
-          Hacer compra por WhatsApp
+          {submitting ? "Enviando..." : "Hacer compra por WhatsApp"}
         </Button>
         
         {/* Stripe oculto temporalmente por petición del cliente 

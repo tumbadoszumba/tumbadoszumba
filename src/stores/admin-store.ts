@@ -58,15 +58,21 @@ interface AdminOrder {
 
 interface AdminProforma {
   id: string
+  requestCode: string | null
+  proformaNumber: number | null
   status: string
-  area: number
+  source: "CALCULADORA" | "CARRITO" | "VENDEDOR"
+  createdBySellerName: string | null
+  // Solo las proformas de la calculadora tienen área y calculadora.
+  area: number | null
   contactName: string | null
   contactPhone: string | null
   createdAt: string
   deletedAt: string | null
   daysRemaining: number | null
-  user: { id: string; name: string; email: string; phone: string | null }
-  calculator: { id: string; name: string }
+  // null si el cliente pidió la proforma sin iniciar sesión
+  user: { id: string; name: string; email: string; phone: string | null } | null
+  calculator: { id: string; name: string } | null
   itemCount: number
   total: number
 }

@@ -49,8 +49,6 @@ export async function PUT(
     const { id } = await params
     const body = await request.json()
 
-    // Log the incoming body for debugging
-    console.log("PUT /api/products/[id] - body:", JSON.stringify(body, null, 2))
 
     // Build the data object with explicit type coercion
     const updateData: Record<string, unknown> = {
@@ -70,10 +68,17 @@ export async function PUT(
       returnDays: body.returnPolicy && body.returnDays ? Number(body.returnDays) : null,
       warranty: Boolean(body.warranty),
       warrantyPeriod: body.warranty && body.warrantyPeriod ? String(body.warrantyPeriod) : null,
-      isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
       categoryId: String(body.categoryId),
       brandId: body.brandId ? String(body.brandId) : null,
     }
+    // Solo se cambia si viene: antes se reactivaba el producto en cada edición
+    // porque el formulario no manda este campo («Mostrar» en la lista).
+    if (body.isActive !== undefined) updateData.isActive = Boolean(body.isActive)
+    // Datos del sistema de facturación: solo si vienen (formulario nuevo).
+    if (body.code !== undefined) updateData.code = body.code ? String(body.code).trim() : null
+    if (body.model !== undefined) updateData.model = body.model ? String(body.model).trim() : null
+    if (body.cashPrice !== undefined) updateData.cashPrice = body.cashPrice != null && body.cashPrice !== "" ? Number(body.cashPrice) : null
+    if (body.costPrice !== undefined) updateData.costPrice = body.costPrice != null && body.costPrice !== "" ? Number(body.costPrice) : null
 
     const product = await prisma.product.update({
       where: { id },
@@ -88,6 +93,9 @@ export async function PUT(
 
     return NextResponse.json(transformProduct(product))
   } catch (error) {
+    if ((error as { code?: string })?.code === "P2002") {
+      return NextResponse.json({ error: "Ese código ya lo usa otro producto" }, { status: 409 })
+    }
     console.error("Error updating product:", error)
     const message = error instanceof Error ? error.message : "Error updating product"
     return NextResponse.json(

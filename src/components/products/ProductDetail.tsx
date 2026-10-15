@@ -9,6 +9,7 @@ import { Product } from "@/types"
 import { useCartStore } from "@/stores/cart-store"
 import { useFavoritesStore } from "@/stores/favorites-store"
 import { formatPrice } from "@/lib/format"
+import { ShareWhatsAppButton } from "./ShareWhatsAppButton"
 
 interface ProductDetailProps {
   product: Product
@@ -177,6 +178,8 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </Button>
         </div>
       </div>
+
+      <ShareWhatsAppButton productName={product.name} />
 
       {/* Benefits */}
       {(product.freeShipping || product.returnPolicy || product.warranty) && (

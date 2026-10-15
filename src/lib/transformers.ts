@@ -28,6 +28,8 @@ export function transformProduct(product: ProductWithRelations): Product {
     categoryId: product.categoryId,
     brandId: product.brandId ?? undefined,
     isActive: product.isActive,
+    code: product.code ?? null,
+    model: product.model ?? null,
     price: Number(product.price),
     originalPrice: product.comparePrice ? Number(product.comparePrice) : undefined,
     images: product.images,

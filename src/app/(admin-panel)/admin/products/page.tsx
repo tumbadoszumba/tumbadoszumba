@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
 import { formatPrice } from "@/lib/format"
 
 interface Product {
@@ -55,6 +56,8 @@ interface Product {
   images: string[]
   isNew: boolean
   isFeatured: boolean
+  isActive: boolean
+  code?: string | null
 }
 
 interface Category {
@@ -74,6 +77,7 @@ function ProductsSkeleton() {
           <TableHead>Precio</TableHead>
           <TableHead>Stock</TableHead>
           <TableHead>Estado</TableHead>
+          <TableHead>Mostrar</TableHead>
           <TableHead className="w-[70px]"></TableHead>
         </TableRow>
       </TableHeader>
@@ -89,6 +93,7 @@ function ProductsSkeleton() {
             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
             <TableCell><Skeleton className="h-4 w-8" /></TableCell>
             <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-9" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8" /></TableCell>
           </TableRow>
         ))}
@@ -105,6 +110,9 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  // Confirmación antes de mostrar u ocultar un producto en la tienda.
+  const [visibilityTarget, setVisibilityTarget] = useState<Product | null>(null)
+  const [savingVisibility, setSavingVisibility] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,9 +155,31 @@ export default function AdminProductsPage() {
     }
   }
 
+  const handleToggleVisibility = async () => {
+    if (!visibilityTarget) return
+    const next = !visibilityTarget.isActive
+    setSavingVisibility(true)
+    try {
+      const response = await fetch(`/api/admin/products/${visibilityTarget.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: next }),
+      })
+      if (!response.ok) throw new Error("toggle")
+      setProducts((list) => list.map((p) => (p.id === visibilityTarget.id ? { ...p, isActive: next } : p)))
+    } catch {
+      alert("No se pudo cambiar la visibilidad del producto")
+    } finally {
+      setSavingVisibility(false)
+      setVisibilityTarget(null)
+    }
+  }
+
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchQuery.toLowerCase())
+    const q = searchQuery.toLowerCase()
+    const matchesSearch = product.name.toLowerCase().includes(q) ||
+      product.brand.toLowerCase().includes(q) ||
+      (product.code ?? "").toLowerCase().includes(q)
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
     return matchesSearch && matchesCategory
   })
@@ -261,13 +291,14 @@ export default function AdminProductsPage() {
                   <TableHead>Precio</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Mostrar</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No se encontraron productos
                     </TableCell>
                   </TableRow>
@@ -289,7 +320,10 @@ export default function AdminProductsPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.brand}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.code && <span className="font-mono">{product.code} · </span>}
+                            {product.brand}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell className="capitalize">{product.category}</TableCell>
@@ -303,6 +337,13 @@ export default function AdminProductsPage() {
                         ) : (
                           <Badge variant="destructive">Agotado</Badge>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={product.isActive}
+                          onCheckedChange={() => setVisibilityTarget(product)}
+                          aria-label={product.isActive ? "Ocultar en la tienda" : "Mostrar en la tienda"}
+                        />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -343,6 +384,28 @@ export default function AdminProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirmación de Mostrar / Ocultar */}
+      <AlertDialog open={!!visibilityTarget} onOpenChange={(open) => !open && setVisibilityTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {visibilityTarget?.isActive ? "¿Ocultar este producto?" : "¿Mostrar este producto?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {visibilityTarget?.isActive
+                ? `Si lo desactivas, «${visibilityTarget?.name}» no se mostrará en la tienda.`
+                : `Si lo activas, «${visibilityTarget?.name}» se mostrará en la tienda siempre que tenga stock.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={savingVisibility}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleVisibility} disabled={savingVisibility}>
+              {savingVisibility ? "Guardando..." : visibilityTarget?.isActive ? "Ocultar" : "Mostrar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

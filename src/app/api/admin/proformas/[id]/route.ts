@@ -21,6 +21,10 @@ export async function GET(_: NextRequest, { params }: { params: Params }) {
         user: { select: { id: true, name: true, email: true, phone: true } },
         calculator: { select: { id: true, name: true } },
         items: { orderBy: { position: "asc" } },
+        versions: {
+          orderBy: { version: "desc" },
+          select: { id: true, version: true, total: true, sellerName: true, branchName: true, createdAt: true },
+        },
       },
     })
 
@@ -52,8 +56,13 @@ export async function GET(_: NextRequest, { params }: { params: Params }) {
 
     return NextResponse.json({
       id: proforma.id,
+      requestCode: proforma.requestCode,
       status: proforma.status,
-      area: Number(proforma.area),
+      area: proforma.area != null ? Number(proforma.area) : null,
+      source: proforma.source,
+      createdBySellerName: proforma.createdBySellerName,
+      branchId: proforma.branchId,
+      sellerId: proforma.sellerId,
       contactName: proforma.contactName,
       contactPhone: proforma.contactPhone,
       contactEmail: proforma.contactEmail,
@@ -68,6 +77,14 @@ export async function GET(_: NextRequest, { params }: { params: Params }) {
       adjustmentValue,
       user: proforma.user,
       calculator: proforma.calculator,
+      versions: proforma.versions.map((v) => ({
+        id: v.id,
+        version: v.version,
+        total: Number(v.total),
+        sellerName: v.sellerName,
+        branchName: v.branchName,
+        createdAt: v.createdAt.toISOString(),
+      })),
       items,
       itemsTotal,
       originalTotal,

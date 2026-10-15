@@ -175,7 +175,11 @@ export function SellersManager() {
   const [savingBranch, setSavingBranch] = useState(false)
   const [newSeller, setNewSeller] = useState<Record<string, { name: string; pin: string }>>({})
   const [savingSeller, setSavingSeller] = useState<string | null>(null)
-  const [lastCreatedPin, setLastCreatedPin] = useState<{ sellerName: string; pin: string } | null>(null)
+  // Aviso con la clave recién creada o cambiada (no se puede volver a ver).
+  const [pinNotice, setPinNotice] = useState<{ text: string; pin: string } | null>(null)
+  // Cambio de clave en línea de un vendedor existente.
+  const [editingPin, setEditingPin] = useState<{ sellerId: string; pin: string } | null>(null)
+  const [savingPin, setSavingPin] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   async function loadBranches() {
@@ -184,7 +188,16 @@ export function SellersManager() {
     try {
       const res = await fetch("/api/admin/branches")
       if (res.ok) {
-        setBranches(await res.json())
+        const data: Branch[] = await res.json()
+        setBranches(data)
+        // La clave sugerida para un vendedor nuevo se fija una sola vez por
+        // local: antes se generaba otra en cada redibujo y la que se veía no
+        // era la que se guardaba.
+        setNewSeller((s) => {
+          const next = { ...s }
+          for (const b of data) next[b.id] ??= { name: "", pin: randomPin() }
+          return next
+        })
       } else {
         const data = await res.json().catch(() => null)
         setLoadError(data?.error || "No se pudieron cargar los locales")
@@ -273,7 +286,7 @@ export function SellersManager() {
         alert(data?.error || "No se pudo crear el vendedor")
         return
       }
-      setLastCreatedPin({ sellerName: form.name, pin: form.pin })
+      setPinNotice({ text: `Vendedor ${form.name} creado con clave`, pin: form.pin })
       setNewSeller((s) => ({ ...s, [branchId]: { name: "", pin: randomPin() } }))
       await loadBranches()
       void branchName
@@ -316,23 +329,34 @@ export function SellersManager() {
     }
   }
 
-  async function resetSellerPin(sellerId: string) {
-    const pin = randomPin()
-    if (!confirm(`¿Asignar una nueva clave a este vendedor? Será: ${pin}`)) return
+  // Antes usaba confirm()/alert(): si se cancelaba o el navegador bloqueaba
+  // esas ventanas, la clave no cambiaba y no había aviso. Ahora se edita en la
+  // misma fila y el resultado queda visible arriba.
+  async function saveSellerPin(sellerName: string) {
+    if (!editingPin) return
+    if (!/^\d{6}$/.test(editingPin.pin)) {
+      alert("La clave debe tener 6 dígitos")
+      return
+    }
+    setSavingPin(true)
     try {
-      const res = await fetch(`/api/admin/sellers/${sellerId}`, {
+      const res = await fetch(`/api/admin/sellers/${editingPin.sellerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({ pin: editingPin.pin }),
       })
       if (res.ok) {
-        alert(`Nueva clave: ${pin}. Anótala, no se puede volver a ver.`)
+        setPinNotice({ text: `Nueva clave de ${sellerName} guardada:`, pin: editingPin.pin })
+        setEditingPin(null)
         await loadBranches()
       } else {
-        alert("No se pudo cambiar la clave")
+        const data = await res.json().catch(() => null)
+        alert(data?.error || "No se pudo cambiar la clave")
       }
     } catch {
       alert("No se pudo conectar con el servidor.")
+    } finally {
+      setSavingPin(false)
     }
   }
 
@@ -348,11 +372,10 @@ export function SellersManager() {
         </Card>
       )}
 
-      {lastCreatedPin && (
+      {pinNotice && (
         <Card className="border-primary">
           <CardContent className="pt-4 text-sm">
-            Vendedor <strong>{lastCreatedPin.sellerName}</strong> creado con clave{" "}
-            <strong className="font-mono">{lastCreatedPin.pin}</strong>. Anótala, no se volverá a mostrar.
+            {pinNotice.text} <strong className="font-mono">{pinNotice.pin}</strong>. Anótala, no se volverá a mostrar.
           </CardContent>
         </Card>
       )}
@@ -431,21 +454,51 @@ export function SellersManager() {
               <p className="text-sm text-muted-foreground">Sin vendedores todavía.</p>
             )}
             {branch.sellers.map((seller) => (
-              <div key={seller.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
-                <div>
-                  <p className="font-medium text-sm">{seller.name}</p>
-                  <p className="text-xs text-muted-foreground">{seller.active ? "Activo" : "Inactivo"}</p>
+              <div key={seller.id} className="rounded-md border p-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-sm">{seller.name}</p>
+                    <p className="text-xs text-muted-foreground">{seller.active ? "Activo" : "Inactivo"}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingPin({ sellerId: seller.id, pin: randomPin() })}
+                      disabled={editingPin?.sellerId === seller.id}
+                    >
+                      <KeyRound className="mr-1 h-3.5 w-3.5" />
+                      Nueva clave
+                    </Button>
+                    <Switch checked={seller.active} onCheckedChange={(v) => toggleSellerActive(seller.id, v)} />
+                    <Button variant="ghost" size="icon" onClick={() => deleteSeller(seller.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => resetSellerPin(seller.id)}>
-                    <KeyRound className="mr-1 h-3.5 w-3.5" />
-                    Nueva clave
-                  </Button>
-                  <Switch checked={seller.active} onCheckedChange={(v) => toggleSellerActive(seller.id, v)} />
-                  <Button variant="ghost" size="icon" onClick={() => deleteSeller(seller.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+                {editingPin?.sellerId === seller.id && (
+                  <div className="flex flex-wrap items-end gap-2 border-t pt-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nueva clave de {seller.name} (puedes cambiarla)</Label>
+                      <Input
+                        value={editingPin.pin}
+                        onChange={(e) =>
+                          setEditingPin({ sellerId: seller.id, pin: e.target.value.replace(/\D/g, "").slice(0, 6) })
+                        }
+                        inputMode="numeric"
+                        autoComplete="off"
+                        maxLength={6}
+                        className="font-mono w-32"
+                      />
+                    </div>
+                    <Button size="sm" onClick={() => saveSellerPin(seller.name)} disabled={savingPin}>
+                      {savingPin ? "Guardando..." : "Guardar clave"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingPin(null)} disabled={savingPin}>
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
 
@@ -457,15 +510,17 @@ export function SellersManager() {
                 <Input
                   value={newSeller[branch.id]?.name ?? ""}
                   onChange={(e) =>
-                    setNewSeller((s) => ({ ...s, [branch.id]: { name: e.target.value, pin: s[branch.id]?.pin ?? randomPin() } }))
+                    setNewSeller((s) => ({ ...s, [branch.id]: { name: e.target.value, pin: s[branch.id]?.pin ?? "" } }))
                   }
                   placeholder="Ej: María López"
                 />
               </div>
               <div className="space-y-2 sm:col-span-1">
-                <Label>Clave (6 dígitos)</Label>
+                <Label>Clave del nuevo vendedor (6 dígitos)</Label>
                 <Input
-                  value={newSeller[branch.id]?.pin ?? randomPin()}
+                  value={newSeller[branch.id]?.pin ?? ""}
+                  inputMode="numeric"
+                  autoComplete="off"
                   onChange={(e) =>
                     setNewSeller((s) => ({ ...s, [branch.id]: { name: s[branch.id]?.name ?? "", pin: e.target.value.replace(/\D/g, "").slice(0, 6) } }))
                   }

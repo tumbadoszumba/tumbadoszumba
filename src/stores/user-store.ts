@@ -50,10 +50,13 @@ interface ProformaItem {
 
 interface Proforma {
   id: string
+  requestCode: string | null
   status: string
-  area: number
+  source: "CALCULADORA" | "CARRITO" | "VENDEDOR"
+  // Solo las proformas de la calculadora tienen área y calculadora.
+  area: number | null
   createdAt: string
-  calculator: { id: string; name: string }
+  calculator: { id: string; name: string } | null
   items: ProformaItem[]
 }
 

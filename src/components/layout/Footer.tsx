@@ -28,6 +28,7 @@ const footerLinks = {
     { name: "Términos y Condiciones", href: "/terms" },
     { name: "Política de Privacidad", href: "/privacy" },
     { name: "Cookies", href: "/cookies" },
+    { name: "Derechos de autor (DMCA)", href: "/derechos-de-autor" },
   ],
 }
 

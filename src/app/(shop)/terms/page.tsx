@@ -97,7 +97,7 @@ export default function TermsPage() {
               8. Propiedad Intelectual
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Todo el contenido del sitio web de Tumbados Zumba, incluyendo textos, gráficos, logos, imágenes y software, son propiedad de Tumbados Zumba o de sus proveedores de contenido y está protegido por leyes internacionales de derechos de autor. Usted no puede reproducir, distribuir o transmitir contenido sin autorización previa escrita.
+              Todo el contenido del sitio web de Tumbados Zumba, incluyendo textos, gráficos, logos, imágenes y software, son propiedad de Tumbados Zumba o de sus proveedores de contenido y está protegido por leyes internacionales de derechos de autor. Usted no puede reproducir, distribuir o transmitir contenido sin autorización previa escrita. Si cree que algún contenido de este sitio infringe sus derechos de autor, siga el procedimiento de nuestra página de Derechos de Autor (DMCA) en /derechos-de-autor.
             </p>
           </section>
 

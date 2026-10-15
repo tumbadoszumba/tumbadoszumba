@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
+import { cookies } from "next/headers"
 import { prisma } from "./prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -62,6 +63,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (!existingUser) {
+          // Cuentas nuevas solo si la persona confirmó en /register que tiene
+          // 18 años o más (cookie que pone GoogleSignInButton). Si entró por
+          // «Iniciar sesión» sin cuenta, vuelve al registro a confirmarlo.
+          const cookieStore = await cookies()
+          if (cookieStore.get("age_confirmed")?.value !== "1") {
+            return "/register?edad=1"
+          }
+          cookieStore.delete("age_confirmed")
           const newUser = await prisma.user.create({
             data: {
               email: user.email!,

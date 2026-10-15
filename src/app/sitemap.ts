@@ -15,6 +15,7 @@ const staticPages: { path: string; changeFrequency: "daily" | "weekly" | "monthl
   { path: "/privacy", changeFrequency: "yearly", priority: 0.2 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.2 },
   { path: "/cookies", changeFrequency: "yearly", priority: 0.2 },
+  { path: "/derechos-de-autor", changeFrequency: "yearly", priority: 0.1 },
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

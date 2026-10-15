@@ -155,7 +155,16 @@ export default function PrivacyPage() {
 
           <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 sm:p-8">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-4">
-              11. Contacto
+              11. Menores de Edad
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Nuestro sitio y nuestros servicios están dirigidos a personas mayores de 18 años. No recopilamos a sabiendas datos personales de menores de edad, en particular de menores de 13 años (incluida la Ley de Protección de la Privacidad Infantil en Internet de EE. UU., COPPA). Para crear una cuenta es obligatorio confirmar que se tiene 18 años o más. Si usted es padre, madre o tutor y cree que un menor nos ha proporcionado datos personales, escríbanos y los eliminaremos.
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 sm:p-8">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-4">
+              12. Contacto
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
               Si tiene preguntas sobre esta Política de Privacidad o nuestras prácticas de privacidad, contáctenos en:

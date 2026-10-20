@@ -61,6 +61,30 @@ export const getOfferProducts = cache(
 )
 
 /**
+ * Listado completo de la tienda (mismo criterio que /api/products sin filtros,
+ * orden más nuevo primero). Sirve para que /products y /ofertas traigan los
+ * productos en el HTML; el filtrado en el navegador sigue igual.
+ */
+export const getListedProducts = cache(
+  unstable_cache(
+    async (offersOnly: boolean): Promise<Product[]> => {
+      const products = await prisma.product.findMany({
+        where: {
+          isActive: true,
+          stock: { gt: 0 },
+          ...(offersOnly ? { comparePrice: { not: null, gt: 0 } } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        include: withRelations,
+      })
+      return products.map(transformProduct)
+    },
+    ["listed-products"],
+    { tags: ["products"], revalidate: 60 }
+  )
+)
+
+/**
  * "Más vendidos": unidades vendidas reales (OrderItem de pedidos ya
  * confirmados/pagados, ver src/lib/sales.ts), de mayor a menor. Si la
  * tienda todavía no tiene suficiente historial de ventas para llenar

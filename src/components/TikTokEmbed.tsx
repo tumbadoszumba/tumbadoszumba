@@ -21,7 +21,6 @@ interface TikTokPreview {
 // es imposible que dispare su "overload protection".
 export function TikTokEmbed({ citeUrl }: TikTokEmbedProps) {
   const [preview, setPreview] = useState<TikTokPreview | null>(null)
-  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -32,7 +31,7 @@ export function TikTokEmbed({ citeUrl }: TikTokEmbedProps) {
         if (!cancelled) setPreview(data)
       })
       .catch(() => {
-        if (!cancelled) setFailed(true)
+        // Sin portada se queda el texto de abajo, que también va en el HTML
       })
 
     return () => {
@@ -58,14 +57,10 @@ export function TikTokEmbed({ citeUrl }: TikTokEmbedProps) {
           unoptimized
         />
       ) : (
+        // Texto visible desde el HTML inicial (antes de que llegue la portada)
         <div className="flex h-full min-h-[500px] w-full flex-col items-center justify-center gap-3 bg-muted/40">
-          {!failed && <span className="text-xs text-muted-foreground">Cargando video...</span>}
-          {failed && (
-            <>
-              <span className="text-sm font-medium text-muted-foreground">Video de TikTok</span>
-              <span className="text-xs text-muted-foreground/70">Toca para verlo en TikTok</span>
-            </>
-          )}
+          <span className="text-sm font-medium text-muted-foreground">Video de TikTok</span>
+          <span className="text-xs text-muted-foreground/70">Toca para verlo en TikTok</span>
         </div>
       )}
 

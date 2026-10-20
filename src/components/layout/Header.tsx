@@ -22,6 +22,7 @@ import { SearchSuggestionsDropdown } from "./SearchSuggestionsDropdown"
 import { useCartStore } from "@/stores/cart-store"
 import { useFavoritesStore } from "@/stores/favorites-store"
 import { WHATSAPP_URL, socialLinks } from "@/lib/social"
+import { categoryPath } from "@/lib/site"
 import type { Category, Product } from "@/types"
 
 export function Header({ categories = [] }: { categories?: Category[] }) {
@@ -365,7 +366,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
                     categories.map((category) => (
                       <DropdownMenuItem key={category.id || category.slug} asChild>
                         <Link
-                          href={`/products?category=${category.slug}`}
+                          href={categoryPath(category.slug)}
                           className="cursor-pointer font-medium flex items-center justify-between"
                         >
                           <span className="truncate">{category.name}</span>

@@ -1,4 +1,12 @@
 import { SITE, ADDRESS_SHORT } from "@/lib/site"
+import { pageMetadata } from "@/lib/seo"
+
+export const metadata = pageMetadata({
+  title: "Política de privacidad",
+  description:
+    "Cómo Tumbados Zumba usa y protege tus datos personales al navegar y comprar en su tienda en línea.",
+  path: "/privacy",
+})
 
 export default function PrivacyPage() {
   return (

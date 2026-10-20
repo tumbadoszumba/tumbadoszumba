@@ -5,6 +5,7 @@ import Image from "next/image"
 import { TrendingUp, Package, ArrowRight } from "lucide-react"
 import type { Product, Category } from "@/types"
 import { formatPrice } from "@/lib/format"
+import { categoryPath } from "@/lib/site"
 
 interface SearchSuggestionsDropdownProps {
   isOpen: boolean
@@ -41,7 +42,7 @@ export function SearchSuggestionsDropdown({
               {categories.map((cat) => (
                 <Link
                   key={cat.id || cat.slug}
-                  href={`/products?category=${cat.slug}`}
+                  href={categoryPath(cat.slug)}
                   onClick={onSelectSuggestion}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/60 hover:bg-brand-orange hover:text-white transition-colors duration-150 border border-border/40"
                 >

@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { socialLinks } from "@/lib/social"
+import { categoryPath } from "@/lib/site"
 import type { Category } from "@/types"
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
@@ -85,7 +86,7 @@ export function MobileNav({ categories = [], open, onOpenChange: setOpen }: Mobi
                 return (
                   <Link
                     key={category.id || category.slug}
-                    href={`/products?category=${category.slug}`}
+                    href={categoryPath(category.slug)}
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >

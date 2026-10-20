@@ -1,5 +1,14 @@
 import { SITE, ADDRESS_SHORT } from "@/lib/site"
 
+import { pageMetadata } from "@/lib/seo"
+
+export const metadata = pageMetadata({
+  title: "Política de cookies",
+  description:
+    "Qué cookies usa la tienda en línea de Tumbados Zumba, para qué sirven y cómo puedes gestionarlas.",
+  path: "/cookies",
+})
+
 export default function CookiesPage() {
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">

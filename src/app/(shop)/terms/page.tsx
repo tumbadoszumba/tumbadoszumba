@@ -1,5 +1,14 @@
 import { SITE, ADDRESS_SHORT } from "@/lib/site"
 
+import { pageMetadata } from "@/lib/seo"
+
+export const metadata = pageMetadata({
+  title: "Términos y condiciones",
+  description:
+    "Condiciones de compra, envíos, devoluciones y uso de la tienda en línea de Tumbados Zumba en La Troncal, Ecuador.",
+  path: "/terms",
+})
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">

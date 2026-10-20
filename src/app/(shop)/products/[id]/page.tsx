@@ -116,8 +116,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/products?category=${product.category}`}>
-              {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+            <BreadcrumbLink href={categoryPath(product.category)}>
+              {categoryName}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />

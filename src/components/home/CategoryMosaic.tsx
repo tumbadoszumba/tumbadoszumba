@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { DynamicCalculatorSection } from "@/components/home/DynamicCalculatorSection"
+import { categoryPath } from "@/lib/site"
 
 interface MosaicCard {
   overline: string
@@ -30,7 +31,7 @@ const cards: MosaicCard[] = [
     overline: "Lo Nuevo",
     title: "Placas y",
     accent: "GYPSUM",
-    href: "/products?category=gypsum",
+    href: categoryPath("gypsum"),
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788980567/basictech/media/general/p4exapcgkhtif2341fgb.png",
     span: "col-span-1 lg:col-span-3",
     tone: "light",
@@ -41,7 +42,7 @@ const cards: MosaicCard[] = [
     overline: "Tendencia",
     title: "Insumos y",
     accent: "HERRAMIENTAS",
-    href: "/products?category=herramientas",
+    href: categoryPath("herramientas"),
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1789012695/basictech/media/general/nqr6ugugotz6ipyz4rk9.png",
     span: "col-span-2 lg:col-span-6",
     wide: true,
@@ -53,7 +54,7 @@ const cards: MosaicCard[] = [
     overline: "En Casa",
     title: "Cielo raso e",
     accent: "ILUMINACIÓN",
-    href: "/products?category=luces",
+    href: categoryPath("luces"),
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788980572/basictech/media/general/dynhcky2ymxt5q1c1hd7.png",
     span: "col-span-2 lg:col-span-6",
     wide: true,
@@ -65,7 +66,7 @@ const cards: MosaicCard[] = [
     overline: "Diseño & Lujo",
     title: "Paneles y",
     accent: "PVC / WPC",
-    href: "/products?category=Cielo%20raso-%20vinil",
+    href: categoryPath("cielo-raso--vinil"),
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1788980574/basictech/media/general/miedwrwakgdybexemmb4.png",
     span: "col-span-2 lg:col-span-6",
     wide: true,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { ProductsPageClient } from "@/components/products/ProductsPageClient"
-import { getCategories } from "@/lib/queries"
+import { getCategories, getListedProducts } from "@/lib/queries"
 import { categoryPath } from "@/lib/site"
 import { pageMetadata } from "@/lib/seo"
 import { categoryCopy } from "@/lib/seo-copy"
@@ -44,6 +44,14 @@ export async function generateMetadata({ searchParams }: ProductsPageProps): Pro
   return pageMetadata({ title: baseTitle, description: baseDescription, path: "/products" })
 }
 
-export default function ProductsPage() {
-  return <ProductsPageClient />
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const { category } = await searchParams
+  // Los productos van en el HTML (para buscadores y robots de IA), no solo por JavaScript.
+  // Con ?category= se filtra aquí para que el HTML inicial no muestre todo el catálogo.
+  const all = await getListedProducts(false)
+  const wanted = category ? decodeURIComponent(category).trim().toLowerCase() : ""
+  const initialProducts = wanted
+    ? all.filter((p) => p.category.toLowerCase() === wanted)
+    : all
+  return <ProductsPageClient initialProducts={initialProducts} />
 }

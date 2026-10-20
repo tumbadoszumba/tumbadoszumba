@@ -3,6 +3,8 @@ import type { Product, Category, Brand, FilterState } from "@/types"
 
 interface ProductsState {
   products: Product[]
+  /** true cuando `products` ya viene de la tienda (servidor o API) */
+  productsLoaded: boolean
   categories: Category[]
   brands: Brand[]
   featuredProducts: Product[]
@@ -12,6 +14,7 @@ interface ProductsState {
 
   // Actions
   fetchProducts: (filters?: Partial<FilterState>) => Promise<void>
+  setInitialProducts: (products: Product[]) => void
   fetchFeaturedProducts: () => Promise<void>
   fetchCategories: () => Promise<void>
   fetchBrands: () => Promise<void>
@@ -33,12 +36,17 @@ let productsAbortController: AbortController | null = null
 
 export const useProductsStore = create<ProductsState>((set, get) => ({
   products: [],
+  productsLoaded: false,
   categories: [],
   brands: [],
   featuredProducts: [],
   filters: defaultFilters,
   loading: false,
   error: null,
+
+  setInitialProducts: (products) => {
+    set({ products, productsLoaded: true, loading: false })
+  },
 
   fetchProducts: async (filterOverrides) => {
     // Cancelar request anterior si todavía está en vuelo
@@ -81,7 +89,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
       if (!response.ok) throw new Error("Failed to fetch products")
 
       const data = await response.json()
-      set({ products: data.products, loading: false })
+      set({ products: data.products, productsLoaded: true, loading: false })
     } catch (error) {
       // Ignorar errores por cancelación (AbortError) — son esperados
       if ((error as Error).name === "AbortError") return

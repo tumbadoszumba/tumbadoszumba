@@ -9,9 +9,9 @@ interface ProductsPageProps {
   searchParams: Promise<{ category?: string; search?: string }>
 }
 
-const baseTitle = "Catálogo de productos para tumbados y gypsum en La Troncal, Ecuador"
+const baseTitle = "Catálogo de gypsum y tumbados en La Troncal"
 const baseDescription =
-  "Placas de yeso, cielo raso y paneles de PVC, perfilería, molduras, iluminación LED y herramientas para tumbados. Compra en línea en Tumbados Zumba, La Troncal, Ecuador."
+  "Placas de yeso, cielo raso y paneles de PVC, perfilería, molduras, luces LED y herramientas para tumbados. Compra en línea o retira en La Troncal, Ecuador."
 
 /**
  * El listado filtra en el navegador (no se tocó), así que las variantes con

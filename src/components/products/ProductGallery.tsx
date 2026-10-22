@@ -20,7 +20,9 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           src={images[selectedIndex]}
           alt={productName}
           fill
-          className="object-cover"
+          quality={90}
+          // contain: la foto completa, sin recortarla ni agrandarla (con cover se veía borrosa)
+          className="object-contain"
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
         />

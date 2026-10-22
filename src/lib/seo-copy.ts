@@ -20,7 +20,7 @@ const known: Record<string, CategoryCopy> = {
     title: `Placas de yeso (gypsum) en ${where}`,
     h1: `Placas de yeso y gypsum en ${where}`,
     description:
-      "Placas de yeso estándar (ST) y resistentes a la humedad (RH), ángulos y accesorios para tumbados y paredes de construcción en seco. Retira en La Troncal o compra en línea con envío dentro de Ecuador.",
+      "Placas de yeso estándar (ST) y resistentes a la humedad (RH), ángulos y accesorios para tumbados y paredes. Retira en La Troncal o compra con envío en Ecuador.",
     intro: [
       "Aquí encuentras placas de yeso (drywall) para tumbados, cielos rasos y paredes divisorias. La placa estándar (ST) es la más usada en interiores secos; la placa RH, resistente a la humedad, se usa en zonas como baños y cocinas.",
       "Complementa tu obra con ángulos perimetrales y accesorios de instalación. Si no sabes cuánto material necesitas, usa la calculadora de materiales de la tienda.",
@@ -37,10 +37,10 @@ const known: Record<string, CategoryCopy> = {
     ],
   },
   herramientas: {
-    title: `Herramientas para tumbados y construcción en seco en ${where}`,
+    title: `Herramientas para tumbados en ${where}`,
     h1: "Herramientas para tumbados y construcción en seco",
     description:
-      "Espátulas, tijeras de aviación, brochas, cintas de medir, alambre y accesorios para instalar tumbados y paredes de gypsum. Marcas como Truper, Stanley, Tactix y Wadfow en La Troncal, Ecuador.",
+      "Espátulas, tijeras de aviación, brochas, cintas de medir y alambre para instalar tumbados y gypsum. Truper, Stanley, Tactix y Wadfow en La Troncal, Ecuador.",
     intro: [
       "Herramientas y accesorios para el instalador: espátulas, tijeras de aviación, brochas, cintas de medir, mezcladores de pintura, alambre galvanizado y recocido, y sujeciones.",
       `Trabajamos con marcas reconocidas y atendemos a maestros, constructores y particulares desde ${where}.`,

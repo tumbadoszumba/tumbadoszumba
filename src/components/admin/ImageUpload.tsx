@@ -12,6 +12,9 @@ interface UploadedImage {
   publicId: string
 }
 
+/** Por debajo de este lado (px) la foto se ve borrosa en la ficha y en celulares. */
+const MIN_SIDE = 800
+
 interface ImageUploadProps {
   value: UploadedImage[]
   onChange: (images: UploadedImage[]) => void
@@ -22,6 +25,7 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
 
   const handleUpload = useCallback(
     async (files: FileList | File[] | null) => {
@@ -36,6 +40,7 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
       const filesToUpload = Array.from(files).slice(0, remainingSlots)
       setUploading(true)
       setError(null)
+      setWarning(null)
 
       try {
         const uploadPromises = filesToUpload.map(async (file) => {
@@ -55,8 +60,18 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
           return response.json()
         })
 
-        const results = await Promise.all(uploadPromises)
-        onChange([...value, ...results])
+        const results: (UploadedImage & { width?: number; height?: number })[] =
+          await Promise.all(uploadPromises)
+        onChange([...value, ...results.map(({ url, publicId }) => ({ url, publicId }))])
+        const small = results.filter(
+          (r) => r.width && r.height && Math.min(r.width, r.height) < MIN_SIDE
+        )
+        if (small.length > 0) {
+          const sizes = small.map((r) => `${r.width}×${r.height} px`).join(", ")
+          setWarning(
+            `Imagen pequeña (${sizes}): en la tienda se verá borrosa. Usa una foto de al menos 1000×1000 px (la original de la cámara o del proveedor, no una miniatura de Google ni de WhatsApp).`
+          )
+        }
       } catch (error) {
         console.error("Error uploading images:", error)
         setError(error instanceof Error ? error.message : "Error al subir imagen")
@@ -200,7 +215,7 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
                 <kbd className="rounded border bg-muted px-1 font-mono text-[11px]">V</kbd>
               </p>
               <p className="text-xs text-muted-foreground">
-                JPG, PNG, WebP o GIF (máx. 5MB)
+                JPG, PNG, WebP o GIF (máx. 5MB) · mínimo recomendado 1000×1000 px
               </p>
               <p className="text-xs text-muted-foreground">
                 {value.length} de {maxImages} imágenes
@@ -233,6 +248,7 @@ export function ImageUpload({ value = [], onChange, maxImages = 5 }: ImageUpload
         </div>
       )}
 
+      {warning && <p className="text-sm text-amber-600 dark:text-amber-400">{warning}</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )

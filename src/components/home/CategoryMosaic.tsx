@@ -181,6 +181,7 @@ export function CategoryMosaic() {
                   alt={card.accent}
                   fill
                   sizes="(max-width: 1024px) 50vw, 360px"
+                  quality={90}
                   className={`${
                     card.imageFit === "contain" ? "object-contain" : "object-cover"
                   } transition-transform duration-300 group-hover:scale-105`}

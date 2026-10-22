@@ -29,9 +29,11 @@ export const SITE = {
   url: siteUrl,
   locale: "es_EC",
   language: "es-EC",
-  defaultTitle: "Tumbados Zumba | Gypsum, cielo raso PVC y acabados en La Troncal, Ecuador",
+  /** Máx. ~60 caracteres para que Google no lo corte. */
+  defaultTitle: "Tumbados Zumba | Gypsum y cielo raso PVC en La Troncal",
+  /** Máx. ~160 caracteres. */
   description:
-    "Placas de yeso (gypsum), cielo raso y paneles de PVC, perfilería, molduras, iluminación LED y herramientas para tumbados. Tienda e instalación en La Troncal, Cañar. Envíos en Ecuador.",
+    "Gypsum, cielo raso y paneles de PVC, perfilería, molduras, luces LED y herramientas para tumbados. Tienda e instalación en La Troncal, Cañar. Envíos en Ecuador.",
   /** Teléfono oficial = WhatsApp (mismo número). Formato internacional para enlaces y datos estructurados. */
   phone: "+593997119881",
   /** Cómo se muestra el teléfono a las personas. */
@@ -66,6 +68,9 @@ export const SITE = {
     "https://www.tiktok.com/@tumbados_zumba",
   ],
   logo: "/logo-light.png",
+  /** Foto del local (la misma de /instalaciones). Google prefiere una foto real del negocio en los datos del negocio local. */
+  storeImage:
+    "https://res.cloudinary.com/dxkmtbde/image/upload/v1788982326/basictech/media/general/jnyg7eq9rcbkzunfppsx.jpg",
   keywords: [
     "tumbados",
     "tumbados La Troncal",
@@ -91,6 +96,14 @@ export const ADDRESS_LINE = `${SITE.address.street}, ${SITE.address.city}, ${SIT
 
 /** Dirección como se muestra en la web (pie de página, contacto, páginas legales). */
 export const ADDRESS_SHORT = `${SITE.address.street}, ${SITE.address.city}, ${SITE.address.region}`
+
+/**
+ * Enlace a Google Maps (búsqueda por nombre y dirección, sin coordenadas inventadas).
+ * Cuando el perfil de Google Business esté verificado (T-015), cambiarlo por el enlace del perfil.
+ */
+export const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${SITE.name}, ${ADDRESS_LINE}`
+)}`
 
 /** URL absoluta a partir de una ruta («/products/x» → «https://dominio/products/x»). */
 export function absoluteUrl(path = "/"): string {

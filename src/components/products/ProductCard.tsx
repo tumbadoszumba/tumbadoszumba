@@ -87,6 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={productImage}
               alt={product.name}
               fill
+              quality={90}
               className="object-contain transition-transform group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />

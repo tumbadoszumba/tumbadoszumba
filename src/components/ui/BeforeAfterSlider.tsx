@@ -78,6 +78,7 @@ export default function BeforeAfterSlider({
         alt={alt(afterLabel)}
         fill
         sizes={sizes}
+        quality={90}
         priority={priority}
         draggable={false}
         className="object-cover"
@@ -88,6 +89,7 @@ export default function BeforeAfterSlider({
           alt={alt(beforeLabel)}
           fill
           sizes={sizes}
+          quality={90}
           priority={priority}
           draggable={false}
           className="object-cover"

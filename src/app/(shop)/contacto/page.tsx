@@ -1,6 +1,6 @@
 "use client"
 
-import { SITE, ADDRESS_SHORT } from "@/lib/site"
+import { SITE, ADDRESS_SHORT, MAPS_URL } from "@/lib/site"
 import { useState } from "react"
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -91,9 +91,14 @@ export default function ContactoPage() {
                   <MapPin className="size-5 text-brand-orange mt-0.5 shrink-0" strokeWidth={1.75} />
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Dirección</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm">
+                    <a
+                      href={MAPS_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-muted-foreground text-xs sm:text-sm hover:text-brand-orange hover:underline"
+                    >
                       {ADDRESS_SHORT}
-                    </p>
+                    </a>
                   </div>
                 </div>
 
@@ -101,7 +106,12 @@ export default function ContactoPage() {
                   <Phone className="size-5 text-brand-orange mt-0.5 shrink-0" strokeWidth={1.75} />
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Teléfono / WhatsApp</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm">{SITE.phoneDisplay}</p>
+                    <a
+                      href={`tel:${SITE.phone}`}
+                      className="block text-muted-foreground text-xs sm:text-sm hover:text-brand-orange hover:underline"
+                    >
+                      {SITE.phoneDisplay}
+                    </a>
                   </div>
                 </div>
 
@@ -109,9 +119,12 @@ export default function ContactoPage() {
                   <Mail className="size-5 text-brand-orange mt-0.5 shrink-0" strokeWidth={1.75} />
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Correo Electrónico</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm break-all">
-                      tumbadoszumba2508@gmail.com
-                    </p>
+                    <a
+                      href={`mailto:${SITE.email}`}
+                      className="block text-muted-foreground text-xs sm:text-sm break-all hover:text-brand-orange hover:underline"
+                    >
+                      {SITE.email}
+                    </a>
                   </div>
                 </div>
 

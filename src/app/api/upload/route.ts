@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Subir a Cloudinary
-    const result = await new Promise<{ secure_url: string; public_id: string }>(
+    const result = await new Promise<{ secure_url: string; public_id: string; width: number; height: number }>(
       (resolve, reject) => {
         cloudinary.uploader
           .upload_stream(
@@ -44,14 +44,15 @@ export async function POST(request: NextRequest) {
               folder: "basictech/products",
               resource_type: "image",
               transformation: [
-                { width: 1200, height: 1200, crop: "limit" },
-                { quality: "auto" },
+                { width: 2000, height: 2000, crop: "limit" },
+                // auto:best guarda la foto casi sin pérdida; la compresión la hace la entrega
+                { quality: "auto:best" },
                 { fetch_format: "auto" },
               ],
             },
             (error, result) => {
               if (error) reject(error)
-              else resolve(result as { secure_url: string; public_id: string })
+              else resolve(result as { secure_url: string; public_id: string; width: number; height: number })
             }
           )
           .end(buffer)
@@ -61,6 +62,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       url: result.secure_url,
       publicId: result.public_id,
+      // Para avisar en el admin si la foto es pequeña (se vería borrosa en la tienda)
+      width: result.width,
+      height: result.height,
     })
   } catch (error) {
     console.error("Error uploading image:", error)

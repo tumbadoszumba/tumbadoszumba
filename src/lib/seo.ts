@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import type { Product } from "@/types"
-import { SITE, absoluteUrl, productPath } from "@/lib/site"
+import { SITE, MAPS_URL, absoluteUrl, productPath } from "@/lib/site"
 import { formatPrice } from "@/lib/format"
 
 /** Texto plano, una sola línea, cortado en límite de palabra. */
@@ -94,9 +94,19 @@ export function siteJsonLd() {
         description: SITE.description,
         url: SITE.url,
         logo: absoluteUrl(SITE.logo),
-        image: absoluteUrl(SITE.logo),
+        image: [SITE.storeImage, absoluteUrl(SITE.logo)],
         telephone: SITE.phone,
         email: SITE.email,
+        hasMap: MAPS_URL,
+        currenciesAccepted: "USD",
+        contactPoint: {
+          "@type": "ContactPoint",
+          telephone: SITE.phone,
+          email: SITE.email,
+          contactType: "customer service",
+          areaServed: SITE.address.countryCode,
+          availableLanguage: ["es"],
+        },
         address: {
           "@type": "PostalAddress",
           streetAddress: SITE.address.street,
@@ -139,6 +149,44 @@ export function siteJsonLd() {
         },
       },
     ],
+  }
+}
+
+/** Servicio de instalación (página /instalaciones). Lo presta el mismo negocio local. */
+export function installationServiceJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${SITE.url}/instalaciones#service`,
+    name: "Instalación de tumbados y paredes de gypsum",
+    serviceType: "Instalación de tumbados, cielo raso y paredes de gypsum (drywall)",
+    description:
+      "Visita y medida en obra, presupuesto con mano de obra y materiales por separado, estructura con perfilería galvanizada, juntas y entrega lista para pintar.",
+    url: absoluteUrl("/instalaciones"),
+    provider: { "@id": BUSINESS_ID },
+    areaServed: [
+      { "@type": "City", name: SITE.address.city },
+      { "@type": "AdministrativeArea", name: SITE.address.region },
+    ],
+    availableChannel: {
+      "@type": "ServiceChannel",
+      serviceUrl: absoluteUrl("/instalaciones"),
+      servicePhone: SITE.phone,
+      serviceLocation: { "@id": BUSINESS_ID },
+    },
+  }
+}
+
+/** Página de contacto: apunta al negocio local (dirección, teléfono, horario). */
+export function contactPageJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    url: absoluteUrl("/contacto"),
+    name: `Contacto de ${SITE.name}`,
+    inLanguage: SITE.language,
+    isPartOf: { "@id": WEBSITE_ID },
+    mainEntity: { "@id": BUSINESS_ID },
   }
 }
 

@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
             resource_type: "image",
             transformation: [
               { width: 1920, height: 1920, crop: "limit" },
-              { quality: "auto" },
+              // auto:best guarda la foto casi sin pérdida; la compresión la hace la entrega
+              { quality: "auto:best" },
               { fetch_format: "auto" },
             ],
           },

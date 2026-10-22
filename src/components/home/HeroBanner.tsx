@@ -70,6 +70,7 @@ export function HeroBanner() {
                   draggable={false}
                   className={slide.stretch ? "object-fill" : "object-contain"}
                   priority={slide.id === 1}
+                  quality={90}
                   sizes="(min-width: 1920px) 1920px, 100vw"
                 />
               </div>

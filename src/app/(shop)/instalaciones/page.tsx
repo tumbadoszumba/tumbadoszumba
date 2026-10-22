@@ -16,12 +16,13 @@ import {
 } from "@/components/installations/shared"
 import { installationProjects } from "@/data/installation-projects"
 import { cn } from "@/lib/utils"
-import { pageMetadata } from "@/lib/seo"
+import { JsonLd } from "@/components/seo/JsonLd"
+import { breadcrumbJsonLd, installationServiceJsonLd, pageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Instalación de tumbados y gypsum en La Troncal, Ecuador",
+  title: "Instalación de tumbados y gypsum en La Troncal",
   description:
-    "Instalamos tumbados, paredes de gypsum y luz indirecta en La Troncal y alrededores, con el mismo material que vendemos en la tienda. Visita, medidas y presupuesto claro.",
+    "Instalamos tumbados, paredes de gypsum y luz indirecta en La Troncal y alrededores, con material de nuestra tienda. Visita, medidas y presupuesto claro.",
   path: "/instalaciones",
 })
 
@@ -40,6 +41,13 @@ const processSteps = [
 export default function InstalacionesPage() {
   return (
     <div className={cn("text-slate-900 dark:text-white", pageBg)}>
+      <JsonLd data={installationServiceJsonLd()} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Inicio", path: "/" },
+          { name: "Instalaciones", path: "/instalaciones" },
+        ])}
+      />
       {/* Hero: tienda → obra */}
       <header className={cn("border-b", line, blueprint)}>
         <div className="container mx-auto grid items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1fr_1.12fr] lg:gap-12 lg:py-20">

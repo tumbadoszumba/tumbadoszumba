@@ -9,6 +9,7 @@ export const CACHE_TAGS = {
   categories: "categories",
   brands: "brands",
   storeContact: "store-contact",
+  installationsImages: "installations-images",
 } as const
 
 // Next 16 pide un segundo argumento "profile" en revalidateTag. La propia
@@ -33,6 +34,11 @@ export function invalidateCategories() {
 /** Llamar después de guardar el teléfono, correo o calle de la tienda. */
 export function invalidateStoreContact() {
   revalidateTag(CACHE_TAGS.storeContact, IMMEDIATE)
+}
+
+/** Llamar después de guardar las fotos de /instalaciones. */
+export function invalidateInstallationsImages() {
+  revalidateTag(CACHE_TAGS.installationsImages, IMMEDIATE)
 }
 
 /** Llamar después de crear/editar/borrar una marca. */

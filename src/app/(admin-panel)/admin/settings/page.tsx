@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/layout/ThemeToggle"
 import { SellersManager } from "@/components/admin/SellersManager"
+import { InstallationsImagesCard } from "@/components/admin/InstallationsImagesCard"
 import { Tabs,TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
@@ -27,6 +28,12 @@ export default function AdminSettingsPage() {
   const [storeLoading, setStoreLoading] = useState(true)
   const [storeSaving, setStoreSaving] = useState(false)
   const [storeMessage, setStoreMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
+  // Permite entrar directo a una pestaña: /admin/settings?tab=instalaciones
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab")
+    if (tab) setActiveTab(tab)
+  }, [])
 
   useEffect(() => {
     fetch("/api/admin/settings/store")
@@ -73,6 +80,7 @@ export default function AdminSettingsPage() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="store">Tienda</TabsTrigger>
+          <TabsTrigger value="instalaciones">Instalaciones</TabsTrigger>
           <TabsTrigger value="vendedores">Vendedores</TabsTrigger>
           <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
           <TabsTrigger value="payments">Pagos</TabsTrigger>
@@ -283,6 +291,11 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Fotos de /instalaciones */}
+        <TabsContent value="instalaciones" className="space-y-6">
+          <InstallationsImagesCard />
         </TabsContent>
 
         {/* Vendedores */}

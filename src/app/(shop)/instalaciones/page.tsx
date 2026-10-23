@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils"
 import { JsonLd } from "@/components/seo/JsonLd"
 import { breadcrumbJsonLd, installationServiceJsonLd, pageMetadata } from "@/lib/seo"
 import { getStoreContact } from "@/lib/store-contact.server"
+import { getInstallationsImages } from "@/lib/installations-images.server"
 
 export const metadata: Metadata = pageMetadata({
   title: "Instalación de tumbados y gypsum en La Troncal",
@@ -27,10 +28,6 @@ export const metadata: Metadata = pageMetadata({
   path: "/instalaciones",
 })
 
-const HERO_STORE_IMAGE =
-  "https://res.cloudinary.com/dxkmtbde/image/upload/v1788982326/basictech/media/general/jnyg7eq9rcbkzunfppsx.jpg"
-const HERO_WORK_IMAGE =
-  "https://res.cloudinary.com/dxkmtbde/image/upload/v1788982318/basictech/media/general/teeg4tbo7zkdhodkrahk.jpg"
 
 const processSteps = [
   { title: "Visita y medida", text: "Vamos a tu obra y tomamos las medidas reales del espacio." },
@@ -40,7 +37,7 @@ const processSteps = [
 ]
 
 export default async function InstalacionesPage() {
-  const contact = await getStoreContact()
+  const [contact, heroImages] = await Promise.all([getStoreContact(), getInstallationsImages()])
   return (
     <div className={cn("text-slate-900 dark:text-white", pageBg)}>
       <JsonLd data={installationServiceJsonLd(contact)} />
@@ -84,8 +81,8 @@ export default async function InstalacionesPage() {
             <FrameCorners />
             <div className={cn("h-[260px] border sm:h-[340px] lg:h-[400px]", line)}>
               <BeforeAfterSlider
-                beforeSrc={HERO_STORE_IMAGE}
-                afterSrc={HERO_WORK_IMAGE}
+                beforeSrc={heroImages.storeImage}
+                afterSrc={heroImages.workImage}
                 beforeLabel="Nuestra tienda"
                 afterLabel="Tu obra"
                 subject="de la tienda Tumbados Zumba a un tumbado terminado"

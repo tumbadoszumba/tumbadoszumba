@@ -1,4 +1,5 @@
-import { SITE, ADDRESS_SHORT } from "@/lib/site"
+import { getStoreContact } from "@/lib/store-contact.server"
+import { addressShort } from "@/lib/store-contact"
 
 import { pageMetadata } from "@/lib/seo"
 
@@ -9,7 +10,8 @@ export const metadata = pageMetadata({
   path: "/cookies",
 })
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const contact = await getStoreContact()
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -87,8 +89,8 @@ export default function CookiesPage() {
             </p>
             <div className="text-sm text-muted-foreground space-y-1 ml-4">
               <p>📧 Email: tumbadoszumba2508@gmail.com</p>
-              <p>📱 WhatsApp / Teléfono: {SITE.phoneDisplay}</p>
-              <p>📍 Dirección: {ADDRESS_SHORT}</p>
+              <p>📱 WhatsApp / Teléfono: {contact.phoneDisplay}</p>
+              <p>📍 Dirección: {addressShort(contact)}</p>
             </div>
           </section>
         </div>

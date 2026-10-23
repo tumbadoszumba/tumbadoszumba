@@ -6,6 +6,8 @@ import { SessionProvider } from "@/components/providers/SessionProvider"
 import { JsonLd } from "@/components/seo/JsonLd"
 import { SITE } from "@/lib/site"
 import { siteJsonLd } from "@/lib/seo"
+import { StoreContactProvider } from "@/components/providers/StoreContactProvider"
+import { getStoreContact } from "@/lib/store-contact.server"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,18 +73,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const contact = await getStoreContact()
   return (
     <html lang={SITE.language} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Negocio local + sitio web para buscadores e IA */}
-        <JsonLd data={siteJsonLd()} />
+        <JsonLd data={siteJsonLd(contact)} />
         <SessionProvider>
           <ThemeProvider
             attribute="class"
@@ -90,7 +93,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <StoreContactProvider value={contact}>{children}</StoreContactProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

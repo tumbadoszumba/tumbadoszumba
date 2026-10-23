@@ -1,13 +1,15 @@
 "use client"
 
-import { SITE } from "@/lib/site"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { socialLinks as links } from "@/lib/social"
+import { getSocialLinks } from "@/lib/social"
 import { QuotePopup } from "@/components/quote/QuotePopup"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 
 export function WhatsAppFloat() {
+  const { whatsapp } = useStoreContact()
+  const links = getSocialLinks(whatsapp)
   const [mounted, setMounted] = useState(false)
   const [isQuoteOpen, setIsQuoteOpen] = useState(false)
   const { data: session, status } = useSession()
@@ -95,7 +97,7 @@ export function WhatsAppFloat() {
       <QuotePopup
         isOpen={isQuoteOpen}
         onClose={() => setIsQuoteOpen(false)}
-        whatsappNumber={SITE.whatsapp}
+        whatsappNumber={whatsapp}
       />
     </>
   )

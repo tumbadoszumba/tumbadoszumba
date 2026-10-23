@@ -1,4 +1,6 @@
-import { SITE, ADDRESS_LINE, absoluteUrl, categoryPath, productPath } from "@/lib/site"
+import { SITE, absoluteUrl, categoryPath, productPath } from "@/lib/site"
+import { getStoreContact } from "@/lib/store-contact.server"
+import { addressLine } from "@/lib/store-contact"
 import { getSitemapData } from "@/lib/queries-seo"
 import { getBestSellingProducts } from "@/lib/queries"
 import { truncate } from "@/lib/seo"
@@ -12,6 +14,7 @@ export const revalidate = 3600
  * importan. Se genera con el catálogo real, así nunca queda desactualizado.
  */
 export async function GET() {
+  const contact = await getStoreContact()
   let categories: { slug: string; name: string; productCount: number }[] = []
   let products: { name: string; slug: string; price: number; brand: string; showPrice?: boolean }[] = []
   try {
@@ -29,9 +32,9 @@ export async function GET() {
     "",
     "## Datos del negocio",
     `- Nombre: ${SITE.name} (${SITE.alternateName})`,
-    `- Dirección: ${ADDRESS_LINE}`,
-    `- Teléfono / WhatsApp: ${SITE.phone}`,
-    `- Correo: ${SITE.email}`,
+    `- Dirección: ${addressLine(contact)}`,
+    `- Teléfono / WhatsApp: ${contact.phone}`,
+    `- Correo: ${contact.email}`,
     `- Horario: ${SITE.hoursText.summary} (hora de Ecuador)`,
     `- Sitio web: ${SITE.url}`,
     "- Moneda de los precios: dólares estadounidenses (USD)",

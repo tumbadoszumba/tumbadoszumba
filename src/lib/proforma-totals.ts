@@ -14,8 +14,9 @@ export function computeAdjustment(
   return adjustmentDirection === "decrease" ? -magnitude : magnitude
 }
 
-// Los precios guardados no incluyen IVA: el IVA se calcula sobre los items
-// más/menos el ajuste (descuento o recargo) de la proforma.
+// Los precios guardados YA incluyen el IVA: el valor total es lo que suman los
+// items más/menos el ajuste (descuento o recargo), y de ahí se desglosa el
+// subtotal sin IVA y el IVA (subtotal + IVA = total).
 export function computeTotals(
   itemsTotal: number,
   adjustmentType: string | null,
@@ -28,7 +29,8 @@ export function computeTotals(
     adjustmentDirection,
     adjustmentValue
   )
-  const subtotal = itemsTotal + adjustmentAmount
-  const iva = subtotal * IVA_RATE
-  return { itemsTotal, adjustmentAmount, subtotal, iva, total: subtotal + iva }
+  const total = Math.round((itemsTotal + adjustmentAmount) * 100) / 100
+  const subtotal = Math.round((total / (1 + IVA_RATE)) * 100) / 100
+  const iva = Math.round((total - subtotal) * 100) / 100
+  return { itemsTotal, adjustmentAmount, subtotal, iva, total }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type { Product } from "@/types"
-import { SITE, MAPS_URL, absoluteUrl, productPath } from "@/lib/site"
+import { SITE, absoluteUrl, productPath } from "@/lib/site"
+import { DEFAULT_STORE_CONTACT, mapsUrl, type StoreContact } from "@/lib/store-contact"
 import { formatPrice } from "@/lib/format"
 
 /** Texto plano, una sola línea, cortado en límite de palabra. */
@@ -82,7 +83,7 @@ export const noIndexMetadata: Metadata = {
 }
 
 /** Negocio local (tienda + instalación) y sitio web. Va en el layout raíz. */
-export function siteJsonLd() {
+export function siteJsonLd(contact: StoreContact = DEFAULT_STORE_CONTACT) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -95,21 +96,21 @@ export function siteJsonLd() {
         url: SITE.url,
         logo: absoluteUrl(SITE.logo),
         image: [SITE.storeImage, absoluteUrl(SITE.logo)],
-        telephone: SITE.phone,
-        email: SITE.email,
-        hasMap: MAPS_URL,
+        telephone: contact.phone,
+        email: contact.email,
+        hasMap: mapsUrl(contact),
         currenciesAccepted: "USD",
         contactPoint: {
           "@type": "ContactPoint",
-          telephone: SITE.phone,
-          email: SITE.email,
+          telephone: contact.phone,
+          email: contact.email,
           contactType: "customer service",
           areaServed: SITE.address.countryCode,
           availableLanguage: ["es"],
         },
         address: {
           "@type": "PostalAddress",
-          streetAddress: SITE.address.street,
+          streetAddress: contact.street,
           addressLocality: SITE.address.city,
           addressRegion: SITE.address.region,
           addressCountry: SITE.address.countryCode,
@@ -153,7 +154,7 @@ export function siteJsonLd() {
 }
 
 /** Servicio de instalación (página /instalaciones). Lo presta el mismo negocio local. */
-export function installationServiceJsonLd() {
+export function installationServiceJsonLd(contact: StoreContact = DEFAULT_STORE_CONTACT) {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -171,7 +172,7 @@ export function installationServiceJsonLd() {
     availableChannel: {
       "@type": "ServiceChannel",
       serviceUrl: absoluteUrl("/instalaciones"),
-      servicePhone: SITE.phone,
+      servicePhone: contact.phone,
       serviceLocation: { "@id": BUSINESS_ID },
     },
   }

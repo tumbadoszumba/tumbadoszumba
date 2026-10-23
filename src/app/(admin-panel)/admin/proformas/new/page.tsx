@@ -618,7 +618,7 @@ export default function NewProformaPage() {
                 )
               })}
               <div className="flex justify-between items-baseline pt-2">
-                <span className="text-xs text-muted-foreground">El IVA (15%) se agrega en el PDF.</span>
+                <span className="text-xs text-muted-foreground">Los precios ya incluyen el IVA (15%); el PDF lo desglosa del total.</span>
                 <span className="text-sm">
                   Subtotal: <span className="font-mono font-semibold text-base">${subtotal.toFixed(2)}</span>
                 </span>

@@ -11,6 +11,8 @@ import { COMPANY, PROFORMA_VALIDITY_DAYS } from "./company"
 import { amountToWords } from "./amount-in-words"
 import { IVA_RATE } from "@/lib/proforma-totals"
 import { formatPrice } from "@/lib/format"
+import { getStoreContact } from "@/lib/store-contact.server"
+import { addressLine, type StoreContact } from "@/lib/store-contact"
 
 export interface ProformaPdfItem {
   name: string
@@ -91,12 +93,21 @@ const styles = StyleSheet.create({
 const fmtMoney = (n: number) => n.toFixed(2)
 const fmtDate = (d: Date) => d.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" })
 
-function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | null }) {
+function ProformaPdf({
+  data,
+  logo,
+  contact,
+}: {
+  data: ProformaPdfData
+  logo: Buffer | null
+  contact: StoreContact
+}) {
   const validUntil = new Date(data.createdAt)
   validUntil.setDate(validUntil.getDate() + PROFORMA_VALIDITY_DAYS)
   const { client, blankClient } = data
   const ivaPercent = Math.round(IVA_RATE * 100)
-  const itemsSubtotal = data.subtotal - (data.adjustment?.amount ?? 0)
+  // Suma de los productos (con IVA incluido), antes del descuento o recargo.
+  const itemsSubtotal = data.total - (data.adjustment?.amount ?? 0)
   const fillerHeight = Math.max(0, MIN_BODY_HEIGHT - data.items.length * ROW_HEIGHT)
   const colCount = 2 + (data.showUnitPrice ? 1 : 0) + (data.showItemTotal ? 1 : 0)
 
@@ -114,9 +125,9 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
               RUC: {COMPANY.ruc} · Web: {COMPANY.web}
             </Text>
             <Text style={styles.companyLine}>
-              Tel: {COMPANY.phone} · E-mail: {COMPANY.email}
+              Tel: {contact.phoneDisplay} · E-mail: {contact.email}
             </Text>
-            <Text style={styles.companyLine}>{COMPANY.address}</Text>
+            <Text style={styles.companyLine}>{addressLine(contact)}</Text>
           </View>
           <View style={styles.docBox}>
             <Text style={styles.docTitle}>PROFORMA</Text>
@@ -214,7 +225,7 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
               {data.adjustment && (
                 <>
                   <View style={styles.totalRow}>
-                    <Text style={styles.label}>Subtotal:</Text>
+                    <Text style={styles.label}>Productos (IVA incl.):</Text>
                     <Text>{fmtMoney(itemsSubtotal)}</Text>
                   </View>
                   <View style={styles.totalRow}>
@@ -247,7 +258,7 @@ function ProformaPdf({ data, logo }: { data: ProformaPdfData; logo: Buffer | nul
           <Text style={styles.note}>
             Esta proforma NO tiene validez tributaria ante el SRI. Es una cotización comercial. Para formalizar la
             compra se requiere factura electrónica autorizada por el Servicio de Rentas Internas de Ecuador.
-            {"\n"}* IVA del {ivaPercent}% según regulación tributaria Ecuador 2026. Aplica a todos los productos y servicios.
+            {"\n"}* IVA del {ivaPercent}% incluido en los precios, según regulación tributaria Ecuador 2026.
           </Text>
         </View>
       </Page>
@@ -272,6 +283,6 @@ async function loadLogo(): Promise<Buffer | null> {
 }
 
 export async function renderProformaPdf(data: ProformaPdfData): Promise<Buffer> {
-  const logo = await loadLogo()
-  return renderToBuffer(<ProformaPdf data={data} logo={logo} />)
+  const [logo, contact] = await Promise.all([loadLogo(), getStoreContact()])
+  return renderToBuffer(<ProformaPdf data={data} logo={logo} contact={contact} />)
 }

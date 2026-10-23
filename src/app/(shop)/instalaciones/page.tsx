@@ -18,6 +18,7 @@ import { installationProjects } from "@/data/installation-projects"
 import { cn } from "@/lib/utils"
 import { JsonLd } from "@/components/seo/JsonLd"
 import { breadcrumbJsonLd, installationServiceJsonLd, pageMetadata } from "@/lib/seo"
+import { getStoreContact } from "@/lib/store-contact.server"
 
 export const metadata: Metadata = pageMetadata({
   title: "Instalación de tumbados y gypsum en La Troncal",
@@ -38,10 +39,11 @@ const processSteps = [
   { title: "Juntas y entrega", text: "Cinta, masilla y superficie lista para pintar." },
 ]
 
-export default function InstalacionesPage() {
+export default async function InstalacionesPage() {
+  const contact = await getStoreContact()
   return (
     <div className={cn("text-slate-900 dark:text-white", pageBg)}>
-      <JsonLd data={installationServiceJsonLd()} />
+      <JsonLd data={installationServiceJsonLd(contact)} />
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Inicio", path: "/" },

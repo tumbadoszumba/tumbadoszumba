@@ -1,13 +1,11 @@
-import { SITE } from "@/lib/site"
 import type { ReactNode } from "react"
 
-const WHATSAPP_NUM = SITE.whatsapp
 const DEFAULT_MSG =
   "Hola 👋, estoy en la página de Tumbados Zumba y quiero más información."
 
-export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(
-  DEFAULT_MSG
-)}`
+/** Enlace de WhatsApp al número vigente de la tienda (sale de Configuración). */
+export const whatsappLink = (whatsapp: string) =>
+  `https://wa.me/${whatsapp}?text=${encodeURIComponent(DEFAULT_MSG)}`
 export const FACEBOOK_URL =
   "https://www.facebook.com/share/199R335D7Z/?mibextid=wwXIfr"
 export const TIKTOK_URL =
@@ -23,10 +21,10 @@ export interface SocialLink {
   icon: ReactNode
 }
 
-export const socialLinks: SocialLink[] = [
+const baseSocialLinks: SocialLink[] = [
   {
     label: "Escríbenos por WhatsApp",
-    href: WHATSAPP_URL,
+    href: "",
     className: "bg-[#25D366] hover:bg-[#1eb855]",
     hoverClassName: "hover:text-[#25D366]",
     icon: (
@@ -52,3 +50,7 @@ export const socialLinks: SocialLink[] = [
     ),
   },
 ]
+
+/** Redes sociales con el WhatsApp apuntando al número vigente de la tienda. */
+export const getSocialLinks = (whatsapp: string): SocialLink[] =>
+  baseSocialLinks.map((l, i) => (i === 0 ? { ...l, href: whatsappLink(whatsapp) } : l))

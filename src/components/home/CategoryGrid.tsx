@@ -1,16 +1,19 @@
 import Link from "next/link"
 import { Search, TrendingUp } from "lucide-react"
 import { formatPrice } from "@/lib/format"
+import { getStoreContact } from "@/lib/store-contact.server"
 
 interface PopularProduct {
   id: string
   name: string
   slug: string
   price: number
+  showPrice?: boolean
 }
 
-export function CategoryGrid({ products }: { products: PopularProduct[] }) {
+export async function CategoryGrid({ products }: { products: PopularProduct[] }) {
   const topProducts = products.slice(0, 4)
+  const contact = await getStoreContact()
 
   return (
     <section className="pt-1 pb-0.5 sm:pt-1 sm:pb-0.5">
@@ -26,7 +29,7 @@ export function CategoryGrid({ products }: { products: PopularProduct[] }) {
 
           {/* Botón Cotizar - Exclusivo para celular */}
           <a
-            href="https://wa.me/593997119881?text=Hola%2C%20me%20comunico%20desde%20la%20tienda%20web.%20Requiero%20una%20cotizaci%C3%B3n%20t%C3%A9cnica%20de%20materiales."
+            href={`https://wa.me/${contact.whatsapp}?text=Hola%2C%20me%20comunico%20desde%20la%20tienda%20web.%20Requiero%20una%20cotizaci%C3%B3n%20t%C3%A9cnica%20de%20materiales.`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex md:hidden shrink-0 items-center gap-1 px-2 py-0.5 rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors font-bold tracking-wide text-[9.5px]"
@@ -54,7 +57,7 @@ export function CategoryGrid({ products }: { products: PopularProduct[] }) {
                 >
                   <Search className="size-2.5 text-slate-400 group-hover:text-brand-orange transition-colors shrink-0" strokeWidth={1.75} />
                   <span className="leading-tight">{product.name}</span>
-                  {product.price > 0 && (
+                  {product.showPrice !== false && product.price > 0 && (
                     <span className="text-[9px] font-mono font-semibold text-brand-navy dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0 rounded-full leading-tight">
                       ${formatPrice(Number(product.price))}
                     </span>

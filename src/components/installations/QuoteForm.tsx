@@ -1,6 +1,7 @@
 "use client"
 
 import { SITE } from "@/lib/site"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,7 +14,6 @@ import { useInstallationQuoteStore } from "@/stores/installation-quote-store"
 import { cn } from "@/lib/utils"
 import { SectionTag, btnGhost, btnPrimary, fieldLine, line, mutedText, surface } from "./shared"
 
-const WHATSAPP_NUMBER = SITE.whatsapp
 // /api/messages exige email; el formulario solo pide WhatsApp
 const FALLBACK_EMAIL = "cotizaciones@tumbadoszumba.com"
 
@@ -36,12 +36,6 @@ const quoteSchema = z.object({
 
 type QuoteFormData = z.infer<typeof quoteSchema>
 
-const contactInfo = [
-  { label: "Dirección", value: SITE.address.street },
-  { label: "WhatsApp", value: SITE.phoneDisplay },
-  { label: "Horario", value: SITE.hoursText.short },
-  { label: "Correo", value: SITE.email },
-]
 
 const inputClass = cn(
   "h-11 rounded-none bg-white shadow-none focus-visible:border-brand-orange focus-visible:ring-brand-orange/25 dark:bg-[#0B111C] dark:focus-visible:border-brand-orange",
@@ -80,6 +74,14 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export function QuoteForm() {
+  const storeContact = useStoreContact()
+  const WHATSAPP_NUMBER = storeContact.whatsapp
+  const contactInfo = [
+    { label: "Dirección", value: storeContact.street },
+    { label: "WhatsApp", value: storeContact.phoneDisplay },
+    { label: "Horario", value: SITE.hoursText.short },
+    { label: "Correo", value: storeContact.email },
+  ]
   const reference = useInstallationQuoteStore((s) => s.reference)
   const clearReference = useInstallationQuoteStore((s) => s.clearReference)
   const [submitted, setSubmitted] = useState(false)

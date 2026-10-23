@@ -101,9 +101,11 @@ export function SearchSuggestionsDropdown({
                       {product.name}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-mono font-bold text-foreground">
-                        ${formatPrice(Number(product.price))}
-                      </span>
+                      {product.showPrice !== false && (
+                        <span className="text-xs font-mono font-bold text-foreground">
+                          ${formatPrice(Number(product.price))}
+                        </span>
+                      )}
                       {product.brand && (
                         <span className="text-[10px] text-muted-foreground truncate uppercase font-semibold">
                           {product.brand}

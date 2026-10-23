@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
-import { SITE, ADDRESS_LINE } from "@/lib/site"
+import { SITE } from "@/lib/site"
+import { getStoreContact } from "@/lib/store-contact.server"
+import { addressLine } from "@/lib/store-contact"
 import { pageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = pageMetadata({
@@ -15,7 +17,8 @@ const p = "text-sm text-muted-foreground leading-relaxed"
 
 // Página del agente designado (DMCA, 17 U.S.C. § 512(c)). Los mismos datos del
 // agente deben registrarse en el directorio de copyright.gov.
-export default function CopyrightPage() {
+export default async function CopyrightPage() {
+  const contact = await getStoreContact()
   return (
     <div className="min-h-screen py-10 sm:py-16 bg-slate-50/50 dark:bg-background">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -49,13 +52,13 @@ export default function CopyrightPage() {
                 <strong>Empresa:</strong> {SITE.name}
               </p>
               <p>
-                <strong>Dirección postal:</strong> {ADDRESS_LINE}
+                <strong>Dirección postal:</strong> {addressLine(contact)}
               </p>
               <p>
-                <strong>Correo:</strong> {SITE.email}
+                <strong>Correo:</strong> {contact.email}
               </p>
               <p>
-                <strong>Teléfono:</strong> {SITE.phoneDisplay}
+                <strong>Teléfono:</strong> {contact.phoneDisplay}
               </p>
             </div>
           </section>

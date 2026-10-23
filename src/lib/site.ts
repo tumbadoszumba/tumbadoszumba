@@ -10,7 +10,7 @@
  *
  * Datos oficiales confirmados por el dueño (2026-10-07): nombre «Tumbados
  * Zumba», Avenida 25 de Agosto y Galápagos, La Troncal, Cañar; teléfono y
- * WhatsApp +593 99 711 9881; lunes a viernes 7:30–17:00, sábados 7:30–16:00,
+ * WhatsApp +593 96 990 3466 (cambiado por Paul el 2026-10-23); lunes a viernes 7:30–17:00, sábados 7:30–16:00,
  * domingos cerrado; correo tumbadoszumba2508@gmail.com.
  */
 
@@ -35,11 +35,11 @@ export const SITE = {
   description:
     "Gypsum, cielo raso y paneles de PVC, perfilería, molduras, luces LED y herramientas para tumbados. Tienda e instalación en La Troncal, Cañar. Envíos en Ecuador.",
   /** Teléfono oficial = WhatsApp (mismo número). Formato internacional para enlaces y datos estructurados. */
-  phone: "+593997119881",
+  phone: "+593969903466",
   /** Cómo se muestra el teléfono a las personas. */
-  phoneDisplay: "+593 99 711 9881",
+  phoneDisplay: "+593 96 990 3466",
   /** Mismo número sin «+» ni espacios, para enlaces wa.me. */
-  whatsapp: "593997119881",
+  whatsapp: "593969903466",
   email: "tumbadoszumba2508@gmail.com",
   address: {
     street: "Avenida 25 de Agosto y Galápagos",

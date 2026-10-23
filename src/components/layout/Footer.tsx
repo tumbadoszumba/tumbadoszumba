@@ -1,8 +1,9 @@
-import { SITE, ADDRESS_SHORT } from "@/lib/site"
 import Image from "next/image"
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
-import { socialLinks } from "@/lib/social"
+import { getSocialLinks } from "@/lib/social"
+import { getStoreContact } from "@/lib/store-contact.server"
+import { addressShort } from "@/lib/store-contact"
 import { Separator } from "@/components/ui/separator"
 
 interface FooterProduct {
@@ -32,8 +33,10 @@ const footerLinks = {
   ],
 }
 
-export function Footer({ products = [] }: { products?: FooterProduct[] }) {
+export async function Footer({ products = [] }: { products?: FooterProduct[] }) {
   const bestSellers = products.slice(0, 6)
+  const contact = await getStoreContact()
+  const socialLinks = getSocialLinks(contact.whatsapp)
 
   return (
     <footer className="border-t bg-muted/30">
@@ -148,15 +151,15 @@ export function Footer({ products = [] }: { products?: FooterProduct[] }) {
             <ul className="mt-4 space-y-3">
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={1.75} />
-                <span>{ADDRESS_SHORT}</span>
+                <span>{addressShort(contact)}</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                <span>{SITE.phoneDisplay}</span>
+                <span>{contact.phoneDisplay}</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                <span>{SITE.email}</span>
+                <span>{contact.email}</span>
               </li>
             </ul>
           </div>

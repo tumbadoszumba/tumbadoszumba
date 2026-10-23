@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { SITE } from "@/lib/site"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { Truck, MessageCircle, AlertCircle } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ const guestContactSchema = z.object({
 type GuestContact = z.infer<typeof guestContactSchema>
 
 export function CartSummary({ items }: CartSummaryProps) {
+  const storeContact = useStoreContact()
   const clearCart = useCartStore((state) => state.clearCart)
   const { data: session } = useSession()
   const isGuest = !session?.user
@@ -117,7 +118,7 @@ export function CartSummary({ items }: CartSummaryProps) {
 
     msg += `\n\nPor favor, indíquenme los pasos a seguir para el pago y entrega.`;
 
-    const WHATSAPP_NUM = SITE.whatsapp;
+    const WHATSAPP_NUM = storeContact.whatsapp;
     const uri = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`;
     clearCart();
     // Algunos navegadores (Safari en iPhone) bloquean la pestaña nueva porque se

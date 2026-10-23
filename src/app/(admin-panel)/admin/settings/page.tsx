@@ -1,7 +1,7 @@
 "use client"
 
-import { SITE, ADDRESS_SHORT } from "@/lib/site"
-import { useState } from "react"
+import { SITE } from "@/lib/site"
+import { useEffect, useState } from "react"
 import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,41 @@ import {
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState("general")
+  const [store, setStore] = useState({ phone: "", email: "", street: "" })
+  const [storeLoading, setStoreLoading] = useState(true)
+  const [storeSaving, setStoreSaving] = useState(false)
+  const [storeMessage, setStoreMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
+  useEffect(() => {
+    fetch("/api/admin/settings/store")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setStore({ phone: data.phoneDisplay, email: data.email, street: data.street }))
+      .catch(() => setStoreMessage({ ok: false, text: "No se pudieron cargar los datos de la tienda." }))
+      .finally(() => setStoreLoading(false))
+  }, [])
+
+  async function saveStore() {
+    setStoreSaving(true)
+    setStoreMessage(null)
+    try {
+      const res = await fetch("/api/admin/settings/store", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(store),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setStoreMessage({ ok: false, text: data.error ?? "No se pudo guardar." })
+        return
+      }
+      setStore({ phone: data.phoneDisplay, email: data.email, street: data.street })
+      setStoreMessage({ ok: true, text: "Guardado. El sitio ya muestra los datos nuevos." })
+    } catch {
+      setStoreMessage({ ok: false, text: "No se pudo guardar." })
+    } finally {
+      setStoreSaving(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -85,21 +120,44 @@ export default function AdminSettingsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="storeName">Nombre de la tienda</Label>
-                  <Input id="storeName" defaultValue="Tumbados Zumba" />
+                  <Input id="storeName" defaultValue={SITE.name} disabled />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="storeEmail">Email de contacto</Label>
-                  <Input id="storeEmail" type="email" defaultValue={SITE.email} />
+                  <Input
+                    id="storeEmail"
+                    type="email"
+                    value={store.email}
+                    onChange={(e) => setStore({ ...store, email: e.target.value })}
+                    disabled={storeLoading}
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="storePhone">Telefono</Label>
-                  <Input id="storePhone" defaultValue={SITE.phoneDisplay} />
+                  <Label htmlFor="storePhone">Telefono / WhatsApp</Label>
+                  <Input
+                    id="storePhone"
+                    value={store.phone}
+                    onChange={(e) => setStore({ ...store, phone: e.target.value })}
+                    placeholder="+593 96 990 3466"
+                    disabled={storeLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Es el mismo número para llamadas y WhatsApp. Cambia en toda la tienda, el carrito, las proformas en PDF y Google.
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="storeAddress">Direccion</Label>
-                  <Input id="storeAddress" defaultValue={ADDRESS_SHORT} />
+                  <Label htmlFor="storeAddress">Direccion (calle)</Label>
+                  <Input
+                    id="storeAddress"
+                    value={store.street}
+                    onChange={(e) => setStore({ ...store, street: e.target.value })}
+                    disabled={storeLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Se muestra junto a {SITE.address.city}, {SITE.address.region}.
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -107,8 +165,21 @@ export default function AdminSettingsPage() {
                 <Input
                   id="storeDescription"
                   defaultValue="Tu distribuidor de tumbados de gypsum de confianza"
+                  disabled
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                El nombre, la descripción, la ciudad y el horario no se editan aquí porque alimentan el SEO de toda la tienda.
+              </p>
+              {storeMessage && (
+                <p className={storeMessage.ok ? "text-sm text-green-600" : "text-sm text-red-600"}>
+                  {storeMessage.text}
+                </p>
+              )}
+              <Button type="button" onClick={saveStore} disabled={storeLoading || storeSaving}>
+                <Save className="mr-2 h-4 w-4" />
+                {storeSaving ? "Guardando..." : "Guardar datos de la tienda"}
+              </Button>
             </CardContent>
           </Card>
 

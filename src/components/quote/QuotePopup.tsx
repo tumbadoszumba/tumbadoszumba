@@ -1,6 +1,6 @@
 "use client"
 
-import { SITE } from "@/lib/site"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import React, { useEffect } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
@@ -39,10 +39,12 @@ const listItemVariants: Variants = {
 export const QuotePopup: React.FC<QuotePopupProps> = ({
     isOpen,
     onClose,
-    whatsappNumber = SITE.whatsapp,
+    whatsappNumber: whatsappNumberProp,
     calculatorHref = "#calculadora",
     offersHref = "/ofertas",
 }) => {
+    const storeContact = useStoreContact()
+    const whatsappNumber = whatsappNumberProp ?? storeContact.whatsapp
     // Manejo de tecla ESC para cerrar el modal
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

@@ -1,6 +1,8 @@
 "use client"
 
-import { SITE, ADDRESS_SHORT, MAPS_URL } from "@/lib/site"
+import { SITE } from "@/lib/site"
+import { addressShort, mapsUrl } from "@/lib/store-contact"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { useState } from "react"
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/select"
 
 export default function ContactoPage() {
+  const contact = useStoreContact()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -92,12 +95,12 @@ export default function ContactoPage() {
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Dirección</p>
                     <a
-                      href={MAPS_URL}
+                      href={mapsUrl(contact)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block text-muted-foreground text-xs sm:text-sm hover:text-brand-orange hover:underline"
                     >
-                      {ADDRESS_SHORT}
+                      {addressShort(contact)}
                     </a>
                   </div>
                 </div>
@@ -107,10 +110,10 @@ export default function ContactoPage() {
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Teléfono / WhatsApp</p>
                     <a
-                      href={`tel:${SITE.phone}`}
+                      href={`tel:${contact.phone}`}
                       className="block text-muted-foreground text-xs sm:text-sm hover:text-brand-orange hover:underline"
                     >
-                      {SITE.phoneDisplay}
+                      {contact.phoneDisplay}
                     </a>
                   </div>
                 </div>
@@ -120,10 +123,10 @@ export default function ContactoPage() {
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Correo Electrónico</p>
                     <a
-                      href={`mailto:${SITE.email}`}
+                      href={`mailto:${contact.email}`}
                       className="block text-muted-foreground text-xs sm:text-sm break-all hover:text-brand-orange hover:underline"
                     >
-                      {SITE.email}
+                      {contact.email}
                     </a>
                   </div>
                 </div>

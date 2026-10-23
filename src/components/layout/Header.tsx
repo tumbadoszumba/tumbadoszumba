@@ -21,11 +21,15 @@ import { ThemeToggle } from "./ThemeToggle"
 import { SearchSuggestionsDropdown } from "./SearchSuggestionsDropdown"
 import { useCartStore } from "@/stores/cart-store"
 import { useFavoritesStore } from "@/stores/favorites-store"
-import { WHATSAPP_URL, socialLinks } from "@/lib/social"
+import { whatsappLink, getSocialLinks } from "@/lib/social"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { categoryPath } from "@/lib/site"
 import type { Category, Product } from "@/types"
 
 export function Header({ categories = [] }: { categories?: Category[] }) {
+  const { whatsapp } = useStoreContact()
+  const WHATSAPP_URL = whatsappLink(whatsapp)
+  const socialLinks = getSocialLinks(whatsapp)
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")

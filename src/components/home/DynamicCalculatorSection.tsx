@@ -1,6 +1,6 @@
 "use client"
 
-import { SITE } from "@/lib/site"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Calculator } from "@/types"
 import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw } from "lucide-react"
 
-const WA_NUMBER = SITE.whatsapp
 
 const ceil = (x: number) => Math.ceil(x - 1e-9)
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
@@ -153,6 +152,7 @@ function CalculatorSkeleton() {
 }
 
 export function DynamicCalculatorSection() {
+  const { whatsapp: WA_NUMBER } = useStoreContact()
   const { data: session } = useSession()
   const isGuest = !session?.user
   const [calculators, setCalculators] = useState<Calculator[]>([])

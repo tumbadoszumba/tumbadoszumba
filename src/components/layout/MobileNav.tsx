@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { socialLinks } from "@/lib/social"
+import { getSocialLinks } from "@/lib/social"
+import { useStoreContact } from "@/components/providers/StoreContactProvider"
 import { categoryPath } from "@/lib/site"
 import type { Category } from "@/types"
 
@@ -36,6 +37,7 @@ interface MobileNavProps {
 
 // El botón que lo abre es "Menú" en la barra inferior (MobileBottomNav)
 export function MobileNav({ categories = [], open, onOpenChange: setOpen }: MobileNavProps) {
+  const socialLinks = getSocialLinks(useStoreContact().whatsapp)
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">

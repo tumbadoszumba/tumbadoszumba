@@ -8,6 +8,7 @@ import { SITE } from "@/lib/site"
 import { siteJsonLd } from "@/lib/seo"
 import { StoreContactProvider } from "@/components/providers/StoreContactProvider"
 import { getStoreContact } from "@/lib/store-contact.server"
+import { CookieConsentBanner, MetaPixel } from "@/components/analytics/MetaPixel"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -86,6 +87,7 @@ export default async function RootLayout({
       >
         {/* Negocio local + sitio web para buscadores e IA */}
         <JsonLd data={siteJsonLd(contact)} />
+        <MetaPixel />
         <SessionProvider>
           <ThemeProvider
             attribute="class"
@@ -96,6 +98,7 @@ export default async function RootLayout({
             <StoreContactProvider value={contact}>{children}</StoreContactProvider>
           </ThemeProvider>
         </SessionProvider>
+        <CookieConsentBanner />
       </body>
     </html>
   )

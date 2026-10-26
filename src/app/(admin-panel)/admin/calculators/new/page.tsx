@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { ProductPickerDialog } from '@/components/admin/ProductPickerDialog'
+import { CalculatorInputsEditor } from '@/components/admin/CalculatorInputsEditor'
+import { CALCULATOR_TEMPLATES, CalculatorInput, getCalculatorTemplate } from '@/lib/calculator-templates'
 
 interface Material {
   name: string
@@ -22,11 +24,20 @@ export default function NewCalculatorPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [area, setArea] = useState('32')
+  const [inputs, setInputs] = useState<CalculatorInput[]>([])
   const [materials, setMaterials] = useState<Material[]>([
     { name: 'Plancha', unit: 'plancha', yield: '0.35', unitPrice: '' },
     { name: 'Ángulos', unit: 'und', yield: '0.60', unitPrice: '' },
   ])
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  function applyTemplate(templateName: string) {
+    const template = getCalculatorTemplate(templateName)
+    if (!template) return
+    setName(template.name)
+    setDescription(template.description)
+    setInputs(template.inputs)
+  }
 
   const addBlankMaterial = () => {
     setMaterials([...materials, { name: '', unit: '', yield: '', unitPrice: '' }])
@@ -73,6 +84,7 @@ export default function NewCalculatorPage() {
           name,
           description,
           area: parseFloat(area) || 32,
+          inputs,
           materials: materials.map(m => ({
             name: m.name,
             unit: m.unit,
@@ -114,6 +126,13 @@ export default function NewCalculatorPage() {
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-4 bg-card border rounded-lg p-6">
           <div>
+            <label className="text-sm font-medium">Plantilla de sistema</label>
+            <select defaultValue="" onChange={(event) => applyTemplate(event.target.value)} className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm">
+              <option value="">Crear sistema personalizado</option>
+              {CALCULATOR_TEMPLATES.map((template) => <option key={template.name} value={template.name}>{template.name}</option>)}
+            </select>
+          </div>
+          <div>
             <label className="text-sm font-medium">Nombre del Sistema</label>
             <Input
               value={name}
@@ -145,6 +164,8 @@ export default function NewCalculatorPage() {
             />
           </div>
         </div>
+
+        <CalculatorInputsEditor inputs={inputs} onChange={setInputs} />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">

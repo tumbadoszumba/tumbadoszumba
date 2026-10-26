@@ -574,6 +574,8 @@ VENDEDORES_ACCESS_PIN=123456
 NEXT_PUBLIC_SITE_URL=https://www.tumbadoszumba.com
 # Codigo de verificacion de Google Search Console (meta tag)
 GOOGLE_SITE_VERIFICATION=
+# ID de Meta Pixel. La etiqueta solo se carga si el visitante acepta la medición.
+NEXT_PUBLIC_META_PIXEL_ID=
 ```
 
 ## SEO

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 type Params = Promise<{ id: string }>
 
@@ -8,13 +9,18 @@ export async function GET(
   { params }: { params: Params }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const { id } = await params
 
     const address = await prisma.address.findUnique({
       where: { id },
     })
 
-    if (!address) {
+    if (!address || (address.userId !== session.user.id && session.user.role !== "ADMIN")) {
       return NextResponse.json(
         { error: "Address not found" },
         { status: 404 }
@@ -46,15 +52,24 @@ export async function PUT(
   { params }: { params: Params }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const { id } = await params
     const body = await request.json()
 
+    const existingAddress = await prisma.address.findUnique({ where: { id } })
+    if (!existingAddress || (existingAddress.userId !== session.user.id && session.user.role !== "ADMIN")) {
+      return NextResponse.json({ error: "Address not found" }, { status: 404 })
+    }
+
     // If setting as default, unset other defaults
     if (body.isDefault) {
-      const address = await prisma.address.findUnique({ where: { id } })
-      if (address) {
+      if (existingAddress) {
         await prisma.address.updateMany({
-          where: { userId: address.userId, isDefault: true, id: { not: id } },
+          where: { userId: existingAddress.userId, isDefault: true, id: { not: id } },
           data: { isDefault: false },
         })
       }
@@ -99,7 +114,17 @@ export async function DELETE(
   { params }: { params: Params }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const { id } = await params
+
+    const address = await prisma.address.findUnique({ where: { id }, select: { userId: true } })
+    if (!address || (address.userId !== session.user.id && session.user.role !== "ADMIN")) {
+      return NextResponse.json({ error: "Address not found" }, { status: 404 })
+    }
 
     await prisma.address.delete({
       where: { id },

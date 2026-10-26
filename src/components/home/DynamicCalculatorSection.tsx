@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calculator } from "@/types"
+import { CalculatorInput } from "@/lib/calculator-templates"
 import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw } from "lucide-react"
 
 
@@ -38,7 +39,7 @@ function getSystemLabel(calc: Calculator): string {
 }
 
 function isGypsumCalc(calc: Calculator | undefined): boolean {
-  return !!calc && calc.slug.includes("gypsum")
+  return calc?.slug === "gypsum-pared-tumbado"
 }
 
 interface SegmentedToggleProps<T extends string> {
@@ -99,9 +100,6 @@ const contactSchema = z.object({
   contactEmail: z.string().trim().email("Correo inválido").optional().or(z.literal("")),
 })
 
-// Sin sesión, el vendedor solo sabe a quién responder por estos datos.
-const PHONE_RE = /^\+?[\d\s-]{7,20}$/
-
 type ContactForm = z.infer<typeof contactSchema>
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -154,13 +152,13 @@ function CalculatorSkeleton() {
 export function DynamicCalculatorSection() {
   const { whatsapp: WA_NUMBER } = useStoreContact()
   const { data: session } = useSession()
-  const isGuest = !session?.user
   const [calculators, setCalculators] = useState<Calculator[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCalcId, setSelectedCalcId] = useState<string>("")
   const [planchaType, setPlanchaType] = useState<PlanchaTabKey>("normal")
   const [applicationType, setApplicationType] = useState<ApplicationTabKey>("pared")
   const [area, setArea] = useState("32")
+  const [inputValues, setInputValues] = useState<Record<string, string>>({})
   const [showResults, setShowResults] = useState(false)
   const [results, setResults] = useState<MaterialItem[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -168,9 +166,7 @@ export function DynamicCalculatorSection() {
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
-    reset: resetContactForm,
   } = useForm<ContactForm>({
     resolver: zodResolver(contactSchema),
     defaultValues: { contactName: "", contactPhone: "", contactEmail: "" },
@@ -190,14 +186,17 @@ export function DynamicCalculatorSection() {
   }, [])
 
   useEffect(() => {
-    if (session?.user) {
-      resetContactForm({
-        contactName: session.user.name || "",
-        contactPhone: session.user.phone || "",
-        contactEmail: session.user.email || "",
-      })
-    }
-  }, [session, resetContactForm])
+    const calculator = calculators.find((item) => item.id === selectedCalcId)
+    if (!calculator?.inputs?.length) return
+
+    setInputValues(
+      Object.fromEntries(
+        calculator.inputs
+          .filter((input) => input.key !== "area")
+          .map((input) => [input.key, input.defaultValue ?? ""])
+      )
+    )
+  }, [calculators, selectedCalcId])
 
   async function loadCalculators() {
     try {
@@ -235,6 +234,14 @@ export function DynamicCalculatorSection() {
 
     const calculator = calculators.find(c => c.id === selectedCalcId)
     if (!calculator) return
+
+    const missingInput = calculator.inputs?.find(
+      (input) => input.required && input.key !== "area" && !inputValues[input.key]
+    )
+    if (missingInput) {
+      alert(`Completa: ${missingInput.label}`)
+      return
+    }
 
     const areaNum = parseFloat(area)
     if (areaNum <= 0) {
@@ -284,19 +291,6 @@ export function DynamicCalculatorSection() {
     const calculator = calculators.find(c => c.id === selectedCalcId)
     if (!calculator) return
 
-    if (isGuest) {
-      let invalid = false
-      if (!data.contactName || data.contactName.length < 2) {
-        setError("contactName", { message: "Ingresa tu nombre" })
-        invalid = true
-      }
-      if (!data.contactPhone || !PHONE_RE.test(data.contactPhone)) {
-        setError("contactPhone", { message: "Ingresa un número de WhatsApp válido" })
-        invalid = true
-      }
-      if (invalid) return
-    }
-
     // Primero se guarda la proforma: el código que va en el WhatsApp solo
     // existe si se guardó bien.
     let requestCode: string
@@ -339,7 +333,13 @@ export function DynamicCalculatorSection() {
 
     const systemDetail = isGypsumCalc(calculator)
       ? ` (${APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha ${PLANCHA_TABS.find((p) => p.key === planchaType)!.label})`
-      : ""
+      : calculator.inputs?.length
+        ? ` (${calculator.inputs
+          .filter((input) => input.key !== "area")
+          .map((input) => `${input.label}: ${formatInputValue(input)}`)
+          .filter(Boolean)
+          .join(" · ")})`
+        : ""
 
     const phone = data.contactPhone?.trim()
     const msg = encodeURIComponent(
@@ -369,6 +369,12 @@ export function DynamicCalculatorSection() {
 
   const selectedCalc = calculators.find(c => c.id === selectedCalcId)
 
+  const formatInputValue = (input: CalculatorInput) => {
+    const value = input.key === "area" ? area : inputValues[input.key]
+    const option = input.options?.find((item) => item.value === value)
+    return option?.label ?? (value ? `${value}${input.unit ? ` ${input.unit}` : ""}` : "")
+  }
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -395,15 +401,15 @@ export function DynamicCalculatorSection() {
 
         <div className="relative z-10 flex flex-col gap-4 p-5">
           {/* Header */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pr-10">
             <div
               className="flex-shrink-0 w-9 h-9 flex items-center justify-center"
               style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}
             >
               <CalculatorIcon size={18} strokeWidth={1.75} className="text-white" />
             </div>
-            <div>
-              <h3 className="text-sm font-extrabold leading-none text-white tracking-wide">
+            <div className="min-w-0">
+              <h3 className="text-sm font-extrabold leading-tight text-white tracking-wide">
                 Calculadora de materiales{selectedCalc ? ` para ${getSystemLabel(selectedCalc)}` : ""}
               </h3>
               <p className="text-[11px] mt-1 font-medium" style={{ color: "rgba(180,200,255,0.8)" }}>
@@ -448,7 +454,48 @@ export function DynamicCalculatorSection() {
               </div>
             )}
 
-            {isGypsumCalc(selectedCalc) && (
+            {selectedCalc?.inputs?.length ? selectedCalc.inputs.map((input) => (
+              <div key={input.key}>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
+                  {input.label}{input.required ? " *" : ""}
+                </label>
+                {input.type === "select" ? (
+                  <select
+                    value={inputValues[input.key] ?? input.defaultValue ?? ""}
+                    onChange={(event) => setInputValues((current) => ({ ...current, [input.key]: event.target.value }))}
+                    className="w-full px-3 py-2.5 text-sm text-white focus:outline-none cursor-pointer"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
+                  >
+                    {!input.required && <option value="">Sin seleccionar</option>}
+                    {input.options?.map((option) => (
+                      <option key={option.value} value={option.value} style={{ color: "#111", background: "#fff" }}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={input.key === "area" ? area : inputValues[input.key] ?? input.defaultValue ?? ""}
+                      onChange={(event) => input.key === "area"
+                        ? setArea(event.target.value)
+                        : setInputValues((current) => ({ ...current, [input.key]: event.target.value }))}
+                      placeholder={input.placeholder}
+                      step={input.step ?? 0.1}
+                      min={input.min}
+                      className="w-full px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none"
+                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
+                    />
+                    {input.unit && (
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: "rgba(180,200,255,0.6)" }}>
+                        {input.unit}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )) : isGypsumCalc(selectedCalc) && (
               <>
                 <SegmentedToggle
                   label="Tipo de plancha"
@@ -466,7 +513,7 @@ export function DynamicCalculatorSection() {
               </>
             )}
 
-            <div>
+            {!selectedCalc?.inputs?.length && <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
                 Metros Cuadrados (m²)
               </label>
@@ -492,7 +539,7 @@ export function DynamicCalculatorSection() {
                   m²
                 </span>
               </div>
-            </div>
+            </div>}
           </div>
 
           {/* Botón */}
@@ -650,7 +697,7 @@ export function DynamicCalculatorSection() {
               <input
                 type="text"
                 {...register("contactName")}
-                placeholder={isGuest ? "Tu nombre" : "Tu nombre (opcional)"}
+                placeholder="Tu nombre (opcional)"
                 aria-invalid={!!errors.contactName}
                 className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
                 style={{
@@ -666,7 +713,7 @@ export function DynamicCalculatorSection() {
               <input
                 type="tel"
                 {...register("contactPhone")}
-                placeholder={isGuest ? "Tu número de WhatsApp" : "Tu número de WhatsApp (opcional)"}
+                placeholder="Tu número de WhatsApp (opcional)"
                 aria-invalid={!!errors.contactPhone}
                 className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
                 style={{
@@ -716,7 +763,7 @@ export function DynamicCalculatorSection() {
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                   </svg>
-                  {submitting ? "Enviando..." : "Enviar por WhatsApp"}
+                  {submitting ? "Enviando..." : "Cotizar precio por WhatsApp"}
                 </button>
               </div>
             </form>

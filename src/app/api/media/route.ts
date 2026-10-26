@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { cloudinary } from "@/lib/cloudinary"
+import { auth } from "@/lib/auth"
 
 export async function GET() {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const items = await prisma.mediaItem.findMany({
       orderBy: { createdAt: "desc" },
@@ -18,6 +24,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
@@ -108,6 +119,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")

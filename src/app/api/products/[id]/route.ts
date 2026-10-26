@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { transformProduct } from "@/lib/transformers"
 import { cloudinary } from "@/lib/cloudinary"
 import { invalidateProducts } from "@/lib/cache-tags"
+import { auth } from "@/lib/auth"
 
 type Params = Promise<{ id: string }>
 
@@ -45,6 +46,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Params }
 ) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -109,6 +115,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Params }
 ) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const { id } = await params
 

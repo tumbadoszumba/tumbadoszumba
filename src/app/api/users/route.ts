@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const role = searchParams.get("role")
     const status = searchParams.get("status")
@@ -63,13 +70,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
     const body = await request.json()
+
+    if (!body.email || !body.name || typeof body.password !== "string" || body.password.length < 6) {
+      return NextResponse.json({ error: "Datos de usuario inválidos" }, { status: 400 })
+    }
+    const password = await bcrypt.hash(body.password, 12)
 
     // In a real app, you'd hash the password here
     const user = await prisma.user.create({
       data: {
         email: body.email,
-        password: body.password, // Should be hashed
+        password,
         name: body.name,
         phone: body.phone,
         role: body.role?.toUpperCase() || "CUSTOMER",

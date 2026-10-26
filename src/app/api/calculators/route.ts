@@ -11,6 +11,9 @@ export async function GET() {
         name: true,
         slug: true,
         description: true,
+        inputs: true,
+        note: true,
+        position: true,
         area: true,
         isActive: true,
         createdAt: true,
@@ -29,7 +32,8 @@ export async function GET() {
           }
         }
       },
-      where: { isActive: true }
+      where: { isActive: true },
+      orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
     })
 
     return NextResponse.json(calculators)
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { name, description, area, materials } = body
+    const { name, description, area, materials, inputs = [], note, position = 0 } = body
 
     const slug = name.toLowerCase().replace(/\s+/g, '-')
 
@@ -59,14 +63,17 @@ export async function POST(req: NextRequest) {
         name,
         slug,
         description,
+        inputs,
+        note: note || null,
+        position: Number(position) || 0,
         area: parseFloat(area),
         materials: {
-          create: materials.map((material: any, index: number) => ({
+          create: materials.map((material: { name: string; unit: string; yield: string | number; unitPrice?: string | number | null }, index: number) => ({
             name: material.name,
             unit: material.unit,
-            yield: parseFloat(material.yield),
+            yield: Number(material.yield),
             unitPrice: material.unitPrice != null && material.unitPrice !== ''
-              ? parseFloat(material.unitPrice)
+              ? Number(material.unitPrice)
               : null,
             position: index
           }))

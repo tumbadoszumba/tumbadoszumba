@@ -10,9 +10,6 @@ import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 const GUEST_LIMIT = 5
 const GUEST_WINDOW_MS = 10 * 60 * 1000
 
-// Número de WhatsApp: dígitos con espacios, guiones o + opcionales.
-const PHONE_RE = /^\+?[\d\s-]{7,20}$/
-
 const contactSchema = {
   contactName: z.string().trim().optional().nullable(),
   contactPhone: z.string().trim().optional().nullable(),
@@ -68,9 +65,9 @@ type ProformaItemData = {
   position: number
 }
 
-// La calculadora y el carrito se pueden usar sin iniciar sesión: en ese caso
-// la proforma se guarda sin usuario y el nombre y el WhatsApp del cliente son
-// obligatorios.
+// La calculadora y el carrito se pueden usar sin iniciar sesión. Los datos de
+// contacto son opcionales porque el cliente puede continuar la conversación
+// directamente por WhatsApp.
 export async function POST(request: NextRequest) {
   const session = await auth()
   const userId = session?.user?.id ?? null
@@ -97,13 +94,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { contactName, contactPhone, contactEmail } = parsed.data
-
-    if (!userId && (!contactName || contactName.length < 2 || !contactPhone || !PHONE_RE.test(contactPhone))) {
-      return NextResponse.json(
-        { error: "Ingresa tu nombre y tu número de WhatsApp" },
-        { status: 400 }
-      )
-    }
 
     let itemsData: ProformaItemData[]
     let origin: { source: "CALCULADORA"; calculatorId: string; area: number } | { source: "CARRITO" }

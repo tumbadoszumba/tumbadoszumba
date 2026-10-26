@@ -71,6 +71,9 @@ export interface Calculator {
   name: string
   slug: string
   description?: string
+  inputs: import("@/lib/calculator-templates").CalculatorInput[]
+  note?: string | null
+  position: number
   area: number
   isActive: boolean
   materials: CalculatorMaterial[]

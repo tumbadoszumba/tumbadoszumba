@@ -1,0 +1,4 @@
+ALTER TABLE "calculators"
+  ADD COLUMN "inputs" JSONB NOT NULL DEFAULT '[]',
+  ADD COLUMN "note" TEXT,
+  ADD COLUMN "position" INTEGER NOT NULL DEFAULT 0;

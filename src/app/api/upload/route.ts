@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cloudinary } from "@/lib/cloudinary"
+import { auth } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
@@ -76,6 +82,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const publicId = searchParams.get("publicId")

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { transformCategory } from "@/lib/transformers"
 import { invalidateCategories } from "@/lib/cache-tags"
+import { auth } from "@/lib/auth"
 
 export async function GET() {
   try {
@@ -25,6 +26,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const body = await request.json()
 
@@ -65,9 +71,9 @@ export async function POST(request: NextRequest) {
     invalidateCategories()
 
     return NextResponse.json(transformCategory(category), { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating category:", error)
-    if (error?.code === "P2002") {
+    if ((error as { code?: string })?.code === "P2002") {
       return NextResponse.json(
         { error: "Ya existe una categoría con este slug." },
         { status: 409 }

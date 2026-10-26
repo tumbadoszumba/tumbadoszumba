@@ -9,6 +9,8 @@ import { Plus, X, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Calculator, CalculatorMaterial } from '@/types'
 import { ProductPickerDialog } from '@/components/admin/ProductPickerDialog'
+import { CalculatorInputsEditor } from '@/components/admin/CalculatorInputsEditor'
+import { CalculatorInput } from '@/lib/calculator-templates'
 
 interface Material extends CalculatorMaterial {
   _isNew?: boolean
@@ -24,6 +26,7 @@ export default function EditCalculatorPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [area, setArea] = useState('32')
+  const [inputs, setInputs] = useState<CalculatorInput[]>([])
   const [materials, setMaterials] = useState<Material[]>([])
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -39,6 +42,7 @@ export default function EditCalculatorPage() {
       setName(data.name)
       setDescription(data.description || '')
       setArea(data.area.toString())
+      setInputs(data.inputs || [])
       setMaterials(data.materials)
     } catch (err) {
       alert('Error al cargar la calculadora')
@@ -88,7 +92,7 @@ export default function EditCalculatorPage() {
     }
   }
 
-  const updateMaterial = (index: number, field: string, value: any) => {
+  const updateMaterial = (index: number, field: keyof Material, value: string | number | null) => {
     const updated = [...materials]
     updated[index] = { ...updated[index], [field]: value }
     setMaterials(updated)
@@ -123,7 +127,8 @@ export default function EditCalculatorPage() {
           name,
           description,
           area: parseFloat(area) || 32,
-          isActive: true
+          isActive: true,
+          inputs,
         })
       })
 
@@ -225,6 +230,8 @@ export default function EditCalculatorPage() {
             />
           </div>
         </div>
+
+        <CalculatorInputsEditor inputs={inputs} onChange={setInputs} />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">

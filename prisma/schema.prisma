@@ -234,6 +234,11 @@ model Calculator {
   name        String   @unique
   slug        String   @unique
   description String?
+  // Campos que el cliente llena para este sistema. Cada calculadora define los
+  // suyos desde el panel (área, altura, separación, variante, etc.).
+  inputs      Json     @default("[]")
+  note        String?
+  position    Int      @default(0)
   area        Decimal  @db.Decimal(10, 2)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())

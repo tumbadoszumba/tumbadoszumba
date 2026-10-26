@@ -4,6 +4,7 @@ import { transformProduct } from "@/lib/transformers"
 import { invalidateProducts } from "@/lib/cache-tags"
 import { getSoldQuantityByProduct } from "@/lib/sales"
 import { searchProductIds } from "@/lib/search"
+import { auth } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,6 +23,13 @@ export async function GET(request: NextRequest) {
     const offset = searchParams.get("offset")
     const search = searchParams.get("search")
     const includeAll = searchParams.get("includeAll") === "true"
+
+    if (includeAll) {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "ADMIN") {
+        return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+      }
+    }
 
     // Build where clause
     // includeAll se usa desde el panel admin para ver también productos
@@ -156,6 +164,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+  }
+
   try {
     const body = await request.json()
 

@@ -61,7 +61,50 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const body = await request.json()
+
+    if (!Array.isArray(body.items) || body.items.length === 0 || !body.addressId) {
+      return NextResponse.json({ error: "Datos del pedido inválidos" }, { status: 400 })
+    }
+
+    const address = await prisma.address.findFirst({
+      where: { id: String(body.addressId), userId: session.user.id },
+      select: { id: true },
+    })
+    if (!address) {
+      return NextResponse.json({ error: "Dirección no válida" }, { status: 400 })
+    }
+
+    const requestedItems = body.items as Array<{ productId?: string; quantity?: number }>
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: requestedItems.map((item) => String(item.productId || "")) },
+        isActive: true,
+        stock: { gt: 0 },
+      },
+      select: { id: true, name: true, price: true, stock: true },
+    })
+    const productsById = new Map(products.map((product) => [product.id, product]))
+    const items = requestedItems.map((item) => {
+      const product = productsById.get(String(item.productId || ""))
+      const quantity = Number(item.quantity)
+      if (!product || !Number.isInteger(quantity) || quantity <= 0 || quantity > product.stock) return null
+      const price = Number(product.price)
+      return { productId: product.id, name: product.name, price, quantity, total: price * quantity }
+    })
+
+    if (items.some((item) => item === null)) {
+      return NextResponse.json({ error: "Uno o más productos no están disponibles" }, { status: 400 })
+    }
+
+    const validItems = items as Array<{ productId: string; name: string; price: number; quantity: number; total: number }>
+    const subtotal = validItems.reduce((sum, item) => sum + item.total, 0)
+    const shipping = Math.max(0, Number(body.shipping) || 0)
 
     // Generate order number
     const orderCount = await prisma.order.count()
@@ -71,19 +114,19 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         status: "PENDING",
-        subtotal: body.subtotal,
-        shipping: body.shipping,
-        total: body.total,
+        subtotal,
+        shipping,
+        total: subtotal + shipping,
         paymentMethod: body.paymentMethod,
         notes: body.notes,
-        userId: body.userId,
-        addressId: body.addressId,
+        userId: session.user.id,
+        addressId: address.id,
         items: {
-          create: body.items.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
+          create: validItems.map((item) => ({
             name: item.name,
             price: item.price,
             quantity: item.quantity,
-            total: item.price * item.quantity,
+            total: item.total,
             productId: item.productId,
           })),
         },

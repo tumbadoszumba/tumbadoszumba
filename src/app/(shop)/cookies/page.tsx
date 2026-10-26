@@ -41,7 +41,7 @@ export default async function CookiesPage() {
               2. Cookies que Utilizamos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              En Tumbados Zumba solo utilizamos cookies propias, necesarias para el funcionamiento del sitio:
+              En Tumbados Zumba utilizamos cookies propias necesarias para el funcionamiento del sitio y, si las acepta, cookies de medición:
             </p>
             <div className="text-sm text-muted-foreground leading-relaxed space-y-3 ml-4">
               <div>
@@ -57,9 +57,10 @@ export default async function CookiesPage() {
                 <p>Guardan temporalmente los productos que agregó mientras navega el sitio.</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mt-4">
-              No utilizamos cookies de publicidad ni de rastreo de terceros para analítica o marketing.
-            </p>
+            <div className="text-sm text-muted-foreground leading-relaxed space-y-1 mt-4">
+              <p className="font-medium text-slate-900 dark:text-white">Cookies de medición de Meta:</p>
+              <p>Solo se activan si acepta la medición. Ayudan a conocer visitas y acciones en el sitio para evaluar campañas de Facebook e Instagram.</p>
+            </div>
           </section>
 
           <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 sm:p-8">
@@ -67,7 +68,7 @@ export default async function CookiesPage() {
               3. Cómo Controlar las Cookies
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Puede permitir, bloquear o eliminar las cookies desde la configuración de su navegador. Tenga en cuenta que bloquear las cookies necesarias puede impedir que algunas funciones del sitio, como mantener su sesión iniciada o su carrito de compras, funcionen correctamente.
+              Al visitar el sitio puede aceptar o rechazar la medición desde el aviso de cookies. También puede permitir, bloquear o eliminar cookies desde la configuración de su navegador. Bloquear las cookies necesarias puede impedir que algunas funciones, como mantener la sesión o el carrito, funcionen correctamente.
             </p>
           </section>
 

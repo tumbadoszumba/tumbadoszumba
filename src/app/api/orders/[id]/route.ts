@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 type Params = Promise<{ id: string }>
 
@@ -8,6 +9,11 @@ export async function GET(
   { params }: { params: Params }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const { id } = await params
 
     const order = await prisma.order.findUnique({
@@ -27,7 +33,7 @@ export async function GET(
       },
     })
 
-    if (!order) {
+    if (!order || (order.userId !== session.user.id && session.user.role !== "ADMIN")) {
       return NextResponse.json(
         { error: "Order not found" },
         { status: 404 }
@@ -81,6 +87,11 @@ export async function PUT(
   { params }: { params: Params }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
 

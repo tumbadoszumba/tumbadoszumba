@@ -55,13 +55,16 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await req.json()
-    const { name, description, area, isActive } = body
+    const { name, description, area, isActive, inputs = [], note, position = 0 } = body
 
     const calculator = await prisma.calculator.update({
       where: { id },
       data: {
         name,
         description,
+        inputs,
+        note: note || null,
+        position: Number(position) || 0,
         area: parseFloat(area),
         isActive
       },

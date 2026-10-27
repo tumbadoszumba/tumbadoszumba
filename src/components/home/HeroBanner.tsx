@@ -13,21 +13,21 @@ import {
 
 // Banners ya diseñados (1920x640): el texto y la info van dentro de la propia
 // imagen, por eso no se superpone contenido ni botones. En pantallas desde 640 px
-// (web) se usa `image`; en celular, `mobileImage` (430x240, proporción propia).
+// (web) se usa `image`; en celular, `mobileImage` (1678x937, proporción propia).
 const slides = [
   {
     id: 1,
     alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791260924/basictech/media/general/dmrj4z6xdfpxtzwrc8a0.jpg",
     mobileAlt: "Sala moderna con cielo raso de gypsum e iluminación LED",
-    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073886/basictech/media/general/y90bdkorpam8z0eycij3.jpg",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074482/basictech/media/general/wzm0kqsrqmjk6hnyqd0o.jpg",
   },
   {
     id: 2,
     alt: "Catálogo de cielos raso y paneles de pared de PVC",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791350044/basictech/media/general/uo9afrqkji8ts2qqhgkq.png",
-    mobileAlt: "Perfilería metálica para cielos rasos y paredes",
-    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073887/basictech/media/general/vajwomvl60fc2enlg2rw.jpg",
+    mobileAlt: "Cielo raso y paneles de pared WPC efecto madera",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074485/basictech/media/general/huhzi0riasa7xiaxmcfd.jpg",
   },
   {
     id: 3,
@@ -35,8 +35,8 @@ const slides = [
     // El PNG trae 72 px transparentes por lado: se recortan desde la URL (c_crop) y se estira al 5:1
     stretch: true,
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/c_crop,x_76,y_0,w_1768,h_384/v1791347598/basictech/media/general/d3blmbjagebd3ghjw3qa.png",
-    mobileAlt: "Cielo raso y paneles de pared WPC efecto madera",
-    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073888/basictech/media/general/xtv8uhetfuo8fp3f108c.jpg",
+    mobileAlt: "Perfilería metálica para cielos rasos y paredes",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074488/basictech/media/general/hrf4zdafp5d9ry0xzs0t.jpg",
   },
 ]
 

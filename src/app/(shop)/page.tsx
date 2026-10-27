@@ -45,8 +45,8 @@ export default async function HomePage() {
 
       {/* Banner principal full-bleed (todo el ancho de la pantalla) */}
       <section className="pb-1">
-        {/* Web: proporción 5:1 (1920x384), la imagen llena la pantalla de lado a lado sin recortes. Celular: 430x240 */}
-        <div className="mx-auto aspect-[430/240] w-full max-w-[1920px] sm:aspect-[5/1]">
+        {/* Web: proporción 5:1 (1920x384), la imagen llena la pantalla de lado a lado sin recortes. Celular: 1678x937 */}
+        <div className="mx-auto aspect-[1678/937] w-full max-w-[1920px] sm:aspect-[5/1]">
           <HeroBanner />
         </div>
       </section>

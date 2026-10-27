@@ -90,6 +90,7 @@ interface MaterialItem {
   name: string
   qty: number
   unit: string
+  productSlug?: string | null
   unitPriceOverride?: number
 }
 
@@ -230,7 +231,7 @@ export function DynamicCalculatorSection() {
     return calculator.materials.flatMap((mat) => {
       const qty = calcMaterialQty(mat, areaNum, inputValues)
       if (qty === null) return []
-      return [{ materialId: mat.id, ...resolvePlancha(mat.name, calculator), qty, unit: mat.unit }]
+      return [{ materialId: mat.id, ...resolvePlancha(mat.name, calculator), qty, unit: mat.unit, productSlug: mat.productSlug }]
     })
   }
 
@@ -658,7 +659,19 @@ export function DynamicCalculatorSection() {
                     <div key={idx} className="flex items-center justify-between py-3 gap-3">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
                         <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: "#F0731E", opacity: 0.7 }} />
-                        <span className="text-sm text-white truncate">{item.name}</span>
+                        {item.productSlug ? (
+                          <a
+                            href={`/products/${item.productSlug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Ver el producto en la tienda"
+                            className="text-sm text-white truncate underline decoration-white/25 underline-offset-4 hover:decoration-[#F0731E] hover:text-[#F0931E] transition-colors"
+                          >
+                            {item.name}
+                          </a>
+                        ) : (
+                          <span className="text-sm text-white truncate">{item.name}</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span

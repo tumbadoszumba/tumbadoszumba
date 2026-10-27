@@ -65,6 +65,8 @@ export interface CalculatorMaterial {
   position: number
   unitPrice?: number | null
   rules?: import("@/lib/calculator-engine").MaterialRules | null
+  // Solo en la API pública: enlace al producto de la tienda con el mismo nombre.
+  productSlug?: string | null
 }
 
 export interface Calculator {

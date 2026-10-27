@@ -413,7 +413,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
         </div>
 
         {/* ── MOBILE HEADER ────────────────────────────────────────── */}
-        {/* Cuenta | Logo centrado | Contáctanos (estilo app) */}
+        {/* Cuenta | Logo centrado (estilo app) */}
         <div className="grid md:hidden grid-cols-[4.5rem_1fr_4.5rem] h-14 items-center">
           <Link
             href={session ? "/profile" : "/login"}
@@ -444,17 +444,8 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
             />
           </Link>
 
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-[#25D366] transition-opacity hover:opacity-80"
-          >
-            <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden>
-              {socialLinks[0].icon}
-            </svg>
-            <span>Contáctanos</span>
-          </a>
+          {/* Espacio vacío: mantiene el logo centrado (el contacto es el botón COTIZAR de abajo) */}
+          <div aria-hidden />
         </div>
 
         {/* Mobile Search Bar (siempre visible) */}

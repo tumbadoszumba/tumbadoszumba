@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { User, Heart, Package, Building2, PanelTop, Layers, Grid3x3, Frame, LayoutDashboard, Lightbulb, RectangleHorizontal, Wrench } from "lucide-react"
+import { User, Heart, Package, Building2, PanelTop, Layers, Grid3x3, Frame, LayoutDashboard, Lightbulb, RectangleHorizontal, Wrench, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 import {
   Sheet,
   SheetContent,
@@ -33,6 +34,41 @@ interface MobileNavProps {
   categories?: Category[]
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+// Cambio de tema claro/oscuro: en celular vive aquí (el encabezado no lo trae)
+function ThemeSwitch() {
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
+  const current = mounted ? resolvedTheme : undefined
+  const options = [
+    { value: "light", label: "Claro", Icon: Sun },
+    { value: "dark", label: "Oscuro", Icon: Moon },
+  ] as const
+
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="px-3 text-xs font-semibold uppercase text-muted-foreground mb-1">Apariencia</p>
+      <div role="group" aria-label="Tema de la tienda" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+        {options.map(({ value, label, Icon }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={current === value}
+            onClick={() => setTheme(value)}
+            className={cn(
+              "flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              current === value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.75} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 // El botón que lo abre es "Menú" en la barra inferior (MobileBottomNav)
@@ -127,6 +163,10 @@ export function MobileNav({ categories = [], open, onOpenChange: setOpen }: Mobi
               Ver Todos los Productos
             </Link>
           </div>
+
+          <Separator />
+
+          <ThemeSwitch />
 
           <Separator />
 

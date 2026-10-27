@@ -33,9 +33,9 @@ const slides = [
     alt: "Catálogo de cielos raso y paneles de pared de PVC",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791350044/basictech/media/general/uo9afrqkji8ts2qqhgkq.png",
     mobileAlt: "Cielo raso y paneles de pared WPC efecto madera",
-    mobileTitle: "Cielos y paneles con acabado en madera",
-    mobileSubtitle: "Diseños modernos y duraderos para cada ambiente.",
-    mobileCta: "Ver cielo raso",
+    mobileTitle: "Dale estilo a tus techos y paredes",
+    mobileSubtitle: "Cielos rasos y paneles decorativos de PVC.",
+    mobileCta: "Explorar paneles de PVC",
     mobileHref: "/categoria/cielo-raso--vinil",
     mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074485/basictech/media/general/huhzi0riasa7xiaxmcfd.jpg",
   },
@@ -46,10 +46,10 @@ const slides = [
     stretch: true,
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/c_crop,x_76,y_0,w_1768,h_384/v1791347598/basictech/media/general/d3blmbjagebd3ghjw3qa.png",
     mobileAlt: "Perfilería metálica para cielos rasos y paredes",
-    mobileTitle: "Perfilería metálica para tu obra",
-    mobileSubtitle: "Estructura para cielos rasos y paredes de gypsum.",
-    mobileCta: "Explorar productos",
-    mobileHref: "/products",
+    mobileTitle: "La estructura de un buen proyecto",
+    mobileSubtitle: "Perfilería metálica para paredes y cielos rasos.",
+    mobileCta: "Ver perfilería metálica",
+    mobileHref: "/categoria/gypsum",
     mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074488/basictech/media/general/hrf4zdafp5d9ry0xzs0t.jpg",
   },
 ]
@@ -91,7 +91,7 @@ export function HeroBanner() {
                   <Link
                     href={slide.mobileHref}
                     draggable={false}
-                    className="mt-[2.6vw] inline-flex w-fit items-center gap-[1vw] rounded-full bg-[#F0531E] whitespace-nowrap px-[2.6vw] py-[1.5vw] text-[2.5vw] font-bold leading-none text-white shadow-[0_0.6vw_1.6vw_rgba(240,83,30,0.35)] active:scale-95"
+                    className="mt-[2.6vw] inline-flex w-fit items-center gap-[1vw] rounded-full bg-[#F0531E] whitespace-nowrap px-[2.4vw] py-[1.5vw] text-[2.2vw] font-bold leading-none text-white shadow-[0_0.6vw_1.6vw_rgba(240,83,30,0.35)] active:scale-95"
                   >
                     {slide.mobileCta}
                     <ArrowRight className="size-[3vw]" strokeWidth={2.5} aria-hidden />

@@ -413,8 +413,8 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
         </div>
 
         {/* ── MOBILE HEADER ────────────────────────────────────────── */}
-        {/* Cuenta | Logo centrado (estilo app) */}
-        <div className="grid md:hidden grid-cols-[4.5rem_1fr_4.5rem] h-14 items-center">
+        {/* Cuenta | Logo centrado | COTIZAR (estilo app) */}
+        <div className="grid md:hidden grid-cols-[5.5rem_1fr_5.5rem] h-14 items-center">
           <Link
             href={session ? "/profile" : "/login"}
             className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -444,8 +444,18 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
             />
           </Link>
 
-          {/* Espacio vacío: mantiene el logo centrado (el contacto es el botón COTIZAR de abajo) */}
-          <div aria-hidden />
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Cotizar por WhatsApp"
+            className="justify-self-end inline-flex items-center gap-1.5 rounded-full bg-gradient-to-b from-[#2fe176] to-[#1faa52] py-2 pl-2.5 pr-3 text-[11px] font-extrabold tracking-wide text-white shadow-[0_2px_8px_rgba(37,211,102,0.45)] transition-all hover:brightness-110 active:scale-95"
+          >
+            <svg className="h-4 w-4 shrink-0 fill-current" viewBox="0 0 24 24" aria-hidden>
+              {socialLinks[0].icon}
+            </svg>
+            <span>COTIZAR</span>
+          </a>
         </div>
 
         {/* Mobile Search Bar (siempre visible) */}

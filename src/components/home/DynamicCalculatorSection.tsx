@@ -9,10 +9,9 @@ import { z } from "zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calculator } from "@/types"
 import { CalculatorInput } from "@/lib/calculator-templates"
+import { appliesToValues, calcMaterialQty } from "@/lib/calculator-engine"
 import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw } from "lucide-react"
 
-
-const ceil = (x: number) => Math.ceil(x - 1e-9)
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
 
 const PLANCHA_TABS = [
@@ -226,6 +225,15 @@ export function DynamicCalculatorSection() {
     return { name: tab.displayName, unitPriceOverride: tab.unitPrice }
   }
 
+  // Materiales que aplican a las opciones elegidas, con su cantidad ya calculada.
+  function buildItems(calculator: Calculator, areaNum: number): MaterialItem[] {
+    return calculator.materials.flatMap((mat) => {
+      const qty = calcMaterialQty(mat, areaNum, inputValues)
+      if (qty === null) return []
+      return [{ materialId: mat.id, ...resolvePlancha(mat.name, calculator), qty, unit: mat.unit }]
+    })
+  }
+
   function handleCalc() {
     if (!selectedCalcId || !area) {
       alert("Por favor selecciona una calculadora e ingresa el área")
@@ -249,14 +257,7 @@ export function DynamicCalculatorSection() {
       return
     }
 
-    const items: MaterialItem[] = calculator.materials.map(mat => ({
-      materialId: mat.id,
-      ...resolvePlancha(mat.name, calculator),
-      qty: ceil(areaNum * mat.yield),
-      unit: mat.unit
-    }))
-
-    setResults(items)
+    setResults(buildItems(calculator, areaNum))
     setShowResults(true)
   }
 
@@ -272,14 +273,7 @@ export function DynamicCalculatorSection() {
     const areaNum = parseFloat(area)
     if (areaNum <= 0) return
 
-    const items: MaterialItem[] = calculator.materials.map(mat => ({
-      materialId: mat.id,
-      ...resolvePlancha(mat.name, calculator),
-      qty: ceil(areaNum * mat.yield),
-      unit: mat.unit
-    }))
-
-    setResults(items)
+    setResults(buildItems(calculator, areaNum))
   }
 
   const onSubmitProforma = handleSubmit(async (data) => {
@@ -513,6 +507,12 @@ export function DynamicCalculatorSection() {
               </>
             )}
 
+            {selectedCalc?.note && (
+              <p className="text-[11px] leading-snug" style={{ color: "rgba(180,200,255,0.7)" }}>
+                {selectedCalc.note}
+              </p>
+            )}
+
             {!selectedCalc?.inputs?.length && <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(180,200,255,0.7)" }}>
                 Metros Cuadrados (m²)
@@ -606,7 +606,7 @@ export function DynamicCalculatorSection() {
                       <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
                         {results.length} {results.length === 1 ? "material" : "materiales"}
                       </span>
-                      {selectedCalc && results.length < selectedCalc.materials.length && (
+                      {selectedCalc && results.length < selectedCalc.materials.filter((mat) => appliesToValues(mat.rules, inputValues)).length && (
                         <button
                           type="button"
                           onClick={handleResetItems}

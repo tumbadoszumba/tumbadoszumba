@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 
@@ -25,6 +26,7 @@ export async function GET() {
             name: true,
             unit: true,
             yield: true,
+            rules: true,
             position: true,
             createdAt: true,
             updatedAt: true,
@@ -68,10 +70,11 @@ export async function POST(req: NextRequest) {
         position: Number(position) || 0,
         area: parseFloat(area),
         materials: {
-          create: materials.map((material: { name: string; unit: string; yield: string | number; unitPrice?: string | number | null }, index: number) => ({
+          create: materials.map((material: { name: string; unit: string; yield: string | number; unitPrice?: string | number | null; rules?: Prisma.InputJsonValue | null }, index: number) => ({
             name: material.name,
             unit: material.unit,
             yield: Number(material.yield),
+            rules: material.rules ?? Prisma.JsonNull,
             unitPrice: material.unitPrice != null && material.unitPrice !== ''
               ? Number(material.unitPrice)
               : null,

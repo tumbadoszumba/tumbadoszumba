@@ -11,6 +11,8 @@ import { Calculator, CalculatorMaterial } from '@/types'
 import { ProductPickerDialog } from '@/components/admin/ProductPickerDialog'
 import { CalculatorInputsEditor } from '@/components/admin/CalculatorInputsEditor'
 import { CalculatorInput } from '@/lib/calculator-templates'
+import { MaterialRules } from '@/lib/calculator-engine'
+import { MaterialRulesEditor, summarizeRules } from '@/components/admin/MaterialRulesEditor'
 
 interface Material extends CalculatorMaterial {
   _isNew?: boolean
@@ -92,6 +94,12 @@ export default function EditCalculatorPage() {
     }
   }
 
+  const updateRules = (index: number, rules: MaterialRules | null) => {
+    const updated = [...materials]
+    updated[index] = { ...updated[index], rules }
+    setMaterials(updated)
+  }
+
   const updateMaterial = (index: number, field: keyof Material, value: string | number | null) => {
     const updated = [...materials]
     updated[index] = { ...updated[index], [field]: value }
@@ -144,6 +152,7 @@ export default function EditCalculatorPage() {
               name: material.name,
               unit: material.unit,
               yield: parseFloat(material.yield.toString()),
+              rules: material.rules ?? null,
               unitPrice: material.unitPrice != null && material.unitPrice !== ('' as unknown)
                 ? parseFloat(material.unitPrice.toString())
                 : null
@@ -158,6 +167,7 @@ export default function EditCalculatorPage() {
               name: material.name,
               unit: material.unit,
               yield: parseFloat(material.yield.toString()),
+              rules: material.rules ?? null,
               position: material.position,
               unitPrice: material.unitPrice != null && material.unitPrice !== ('' as unknown)
                 ? parseFloat(material.unitPrice.toString())
@@ -256,10 +266,8 @@ export default function EditCalculatorPage() {
 
           <div className="space-y-3">
             {materials.map((material, index) => (
-              <div
-                key={material.id}
-                className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-card border rounded-lg items-end"
-              >
+              <div key={material.id} className="p-4 bg-card border rounded-lg space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">
                     Nombre
@@ -321,6 +329,16 @@ export default function EditCalculatorPage() {
                 >
                   <X className="h-4 w-4" />
                 </Button>
+              </div>
+
+              <details className="text-sm">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                  Reglas por variante{summarizeRules(material.rules) ? ` · ${summarizeRules(material.rules)}` : ''}
+                </summary>
+                <div className="mt-3">
+                  <MaterialRulesEditor rules={material.rules} inputs={inputs} onChange={(rules) => updateRules(index, rules)} />
+                </div>
+              </details>
               </div>
             ))}
           </div>

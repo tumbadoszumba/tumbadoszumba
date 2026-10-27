@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 
 type Params = Promise<{ id: string }>
+
+// Sin reglas (null, vacío o sin ninguna regla activa) se guarda como null.
+function parseRules(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  if (!value || typeof value !== 'object' || Object.keys(value).length === 0) return Prisma.JsonNull
+  return value as Prisma.InputJsonValue
+}
 
 function parseUnitPrice(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null
@@ -22,7 +29,7 @@ export async function POST(
   try {
     const { id } = await params
     const body = await req.json()
-    const { name, unit, yield: yieldValue, unitPrice } = body
+    const { name, unit, yield: yieldValue, unitPrice, rules } = body
 
     const maxPosition = await prisma.calculatorMaterial.findFirst({
       where: { calculatorId: id },
@@ -38,6 +45,7 @@ export async function POST(
         unit,
         yield: parseFloat(yieldValue),
         unitPrice: parseUnitPrice(unitPrice),
+        rules: parseRules(rules),
         position: newPosition,
         calculatorId: id
       }
@@ -65,7 +73,7 @@ export async function PUT(
   try {
     await params
     const body = await req.json()
-    const { materialId, name, unit, yield: yieldValue, position, unitPrice } = body
+    const { materialId, name, unit, yield: yieldValue, position, unitPrice, rules } = body
 
     const material = await prisma.calculatorMaterial.update({
       where: { id: materialId },
@@ -74,6 +82,7 @@ export async function PUT(
         unit,
         yield: parseFloat(yieldValue),
         unitPrice: parseUnitPrice(unitPrice),
+        rules: parseRules(rules),
         position: parseInt(position)
       }
     })

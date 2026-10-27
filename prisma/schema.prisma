@@ -256,6 +256,8 @@ model CalculatorMaterial {
   unit        String
   yield       Decimal  @db.Decimal(10, 4)
   unitPrice   Decimal? @db.Decimal(10, 4)
+  // Reglas por variante (ver src/lib/calculator-engine.ts). Null = sin reglas.
+  rules       Json?
   position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -64,6 +64,7 @@ export interface CalculatorMaterial {
   yield: number
   position: number
   unitPrice?: number | null
+  rules?: import("@/lib/calculator-engine").MaterialRules | null
 }
 
 export interface Calculator {

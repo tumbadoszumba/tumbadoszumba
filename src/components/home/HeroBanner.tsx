@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 import Autoplay from "embla-carousel-autoplay"
 import {
   Carousel,
@@ -20,6 +22,10 @@ const slides = [
     alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791260924/basictech/media/general/dmrj4z6xdfpxtzwrc8a0.jpg",
     mobileAlt: "Sala moderna con cielo raso de gypsum e iluminación LED",
+    mobileTitle: "Dale un nuevo acabado a tus espacios",
+    mobileSubtitle: "Gypsum, PVC y materiales para transformar tu proyecto.",
+    mobileCta: "Explorar productos",
+    mobileHref: "/products",
     mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074482/basictech/media/general/wzm0kqsrqmjk6hnyqd0o.jpg",
   },
   {
@@ -27,6 +33,10 @@ const slides = [
     alt: "Catálogo de cielos raso y paneles de pared de PVC",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791350044/basictech/media/general/uo9afrqkji8ts2qqhgkq.png",
     mobileAlt: "Cielo raso y paneles de pared WPC efecto madera",
+    mobileTitle: "Cielos y paneles con acabado en madera",
+    mobileSubtitle: "Diseños modernos y duraderos para cada ambiente.",
+    mobileCta: "Ver cielo raso",
+    mobileHref: "/categoria/cielo-raso--vinil",
     mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074485/basictech/media/general/huhzi0riasa7xiaxmcfd.jpg",
   },
   {
@@ -36,6 +46,10 @@ const slides = [
     stretch: true,
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/c_crop,x_76,y_0,w_1768,h_384/v1791347598/basictech/media/general/d3blmbjagebd3ghjw3qa.png",
     mobileAlt: "Perfilería metálica para cielos rasos y paredes",
+    mobileTitle: "Perfilería metálica para tu obra",
+    mobileSubtitle: "Estructura para cielos rasos y paredes de gypsum.",
+    mobileCta: "Explorar productos",
+    mobileHref: "/products",
     mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793074488/basictech/media/general/hrf4zdafp5d9ry0xzs0t.jpg",
   },
 ]
@@ -69,6 +83,20 @@ export function HeroBanner() {
                   quality={90}
                   sizes="100vw"
                 />
+                {/* Celular: texto y botón reales sobre la imagen (medidas en vw: el banner ocupa todo el ancho) */}
+                <div className="absolute inset-y-0 left-[5.8%] z-10 flex w-[32%] flex-col justify-center sm:hidden">
+                  <span className="mb-[2vw] block h-[0.5vw] w-[6vw] rounded-full bg-[#F0531E]" aria-hidden />
+                  <p className="text-[3.9vw] font-extrabold leading-[1.04] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
+                  <p className="mt-[1.4vw] text-[2.5vw] leading-snug text-slate-600">{slide.mobileSubtitle}</p>
+                  <Link
+                    href={slide.mobileHref}
+                    draggable={false}
+                    className="mt-[2.6vw] inline-flex w-fit items-center gap-[1vw] rounded-full bg-[#F0531E] whitespace-nowrap px-[2.6vw] py-[1.5vw] text-[2.5vw] font-bold leading-none text-white shadow-[0_0.6vw_1.6vw_rgba(240,83,30,0.35)] active:scale-95"
+                  >
+                    {slide.mobileCta}
+                    <ArrowRight className="size-[3vw]" strokeWidth={2.5} aria-hidden />
+                  </Link>
+                </div>
                 {/* Web: fondo con la misma imagen ampliada y difuminada para rellenar los lados */}
                 <Image
                   src={slide.image}

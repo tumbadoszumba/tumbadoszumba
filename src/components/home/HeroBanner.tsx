@@ -12,18 +12,22 @@ import {
 } from "@/components/ui/carousel"
 
 // Banners ya diseñados (1920x640): el texto y la info van dentro de la propia
-// imagen, por eso no se superpone contenido ni botones. La misma imagen sirve
-// para web y celular.
+// imagen, por eso no se superpone contenido ni botones. En pantallas desde 640 px
+// (web) se usa `image`; en celular, `mobileImage` (430x240, proporción propia).
 const slides = [
   {
     id: 1,
     alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791260924/basictech/media/general/dmrj4z6xdfpxtzwrc8a0.jpg",
+    mobileAlt: "Sala moderna con cielo raso de gypsum e iluminación LED",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073886/basictech/media/general/y90bdkorpam8z0eycij3.jpg",
   },
   {
     id: 2,
     alt: "Catálogo de cielos raso y paneles de pared de PVC",
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791350044/basictech/media/general/uo9afrqkji8ts2qqhgkq.png",
+    mobileAlt: "Perfilería metálica para cielos rasos y paredes",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073887/basictech/media/general/vajwomvl60fc2enlg2rw.jpg",
   },
   {
     id: 3,
@@ -31,6 +35,8 @@ const slides = [
     // El PNG trae 72 px transparentes por lado: se recortan desde la URL (c_crop) y se estira al 5:1
     stretch: true,
     image: "https://res.cloudinary.com/dxkmtbde/image/upload/c_crop,x_76,y_0,w_1768,h_384/v1791347598/basictech/media/general/d3blmbjagebd3ghjw3qa.png",
+    mobileAlt: "Cielo raso y paneles de pared WPC efecto madera",
+    mobileImage: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793073888/basictech/media/general/xtv8uhetfuo8fp3f108c.jpg",
   },
 ]
 
@@ -52,23 +58,34 @@ export function HeroBanner() {
           {slides.map((slide) => (
             <CarouselItem key={slide.id} className="h-full">
               <div className="relative h-full w-full overflow-hidden">
-                {/* Fondo: la misma imagen ampliada y difuminada para rellenar los lados */}
+                {/* Celular: imagen propia, el contenedor ya tiene su proporción */}
+                <Image
+                  src={slide.mobileImage}
+                  alt={slide.mobileAlt}
+                  fill
+                  draggable={false}
+                  className="object-cover sm:hidden"
+                  priority={slide.id === 1}
+                  quality={90}
+                  sizes="100vw"
+                />
+                {/* Web: fondo con la misma imagen ampliada y difuminada para rellenar los lados */}
                 <Image
                   src={slide.image}
                   alt=""
                   aria-hidden
                   fill
                   draggable={false}
-                  className="object-cover scale-110 blur-2xl brightness-90"
+                  className="hidden object-cover scale-110 blur-2xl brightness-90 sm:block"
                   sizes="100vw"
                 />
-                {/* Imagen completa, sin recorte */}
+                {/* Web: imagen completa, sin recorte */}
                 <Image
                   src={slide.image}
                   alt={slide.alt}
                   fill
                   draggable={false}
-                  className={slide.stretch ? "object-fill" : "object-contain"}
+                  className={`hidden sm:block ${slide.stretch ? "object-fill" : "object-contain"}`}
                   priority={slide.id === 1}
                   quality={90}
                   sizes="(min-width: 1920px) 1920px, 100vw"

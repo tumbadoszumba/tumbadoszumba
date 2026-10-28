@@ -127,8 +127,8 @@ export function HeroBanner() {
                     />
                     <div className="absolute inset-y-0 left-[6%] z-10 hidden w-[34%] flex-col justify-center sm:flex">
                       <span className="mb-[0.9vw] block h-[0.3vw] min-h-[3px] w-[3.5vw] rounded-full bg-[#F47B20]" aria-hidden />
-                      <p className="text-[clamp(1.3rem,2.5vw,3rem)] font-semibold leading-[1.1] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
-                      <p className="mt-[0.5vw] text-[clamp(0.8rem,1.3vw,1.6rem)] leading-snug text-slate-600">{slide.mobileSubtitle}</p>
+                      <p className="text-[clamp(1.3rem,2.5vw,3rem)] font-bold leading-[1.1] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
+                      <p className="mt-[0.5vw] text-[clamp(0.8rem,1.3vw,1.6rem)] font-medium leading-snug text-slate-600">{slide.mobileSubtitle}</p>
                       <Link
                         href={slide.mobileHref}
                         draggable={false}

@@ -20,7 +20,7 @@ const slides = [
   {
     id: 1,
     alt: "Tumbados Zumba: placa de yeso estándar, placa de yeso RH y planchas de fibrocemento",
-    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1791260924/basictech/media/general/dmrj4z6xdfpxtzwrc8a0.jpg",
+    image: "https://res.cloudinary.com/dxkmtbde/image/upload/v1793162478/basictech/media/general/f5ip5d5rpuursmk24zvc.jpg",
     mobileAlt: "Sala moderna con cielo raso de gypsum e iluminación LED",
     mobileTitle: "Dale un nuevo acabado a tus espacios",
     mobileSubtitle: "Gypsum, PVC y materiales para transformar tu proyecto.",

@@ -126,13 +126,13 @@ export function HeroBanner() {
                       aria-hidden
                     />
                     <div className="absolute inset-y-0 left-[6%] z-10 hidden w-[34%] flex-col justify-center sm:flex">
-                      <span className="mb-[1.2vw] block h-[0.35vw] min-h-[3px] w-[4vw] rounded-full bg-[#F0531E]" aria-hidden />
-                      <p className="text-[clamp(1.4rem,2.8vw,3.4rem)] font-extrabold leading-[1.05] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
-                      <p className="mt-[0.8vw] text-[clamp(0.85rem,1.5vw,1.8rem)] leading-snug text-slate-600">{slide.mobileSubtitle}</p>
+                      <span className="mb-[0.9vw] block h-[0.3vw] min-h-[3px] w-[3.5vw] rounded-full bg-[#F47B20]" aria-hidden />
+                      <p className="text-[clamp(1.3rem,2.5vw,3rem)] font-semibold leading-[1.1] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
+                      <p className="mt-[0.5vw] text-[clamp(0.8rem,1.3vw,1.6rem)] leading-snug text-slate-600">{slide.mobileSubtitle}</p>
                       <Link
                         href={slide.mobileHref}
                         draggable={false}
-                        className="mt-[1.6vw] inline-flex w-fit items-center gap-[0.6vw] rounded-full bg-[#F0531E] whitespace-nowrap px-[1.8vw] py-[0.9vw] text-[clamp(0.8rem,1.3vw,1.6rem)] font-bold leading-none text-white shadow-[0_0.5vw_1.4vw_rgba(240,83,30,0.35)] transition hover:brightness-110 active:scale-95"
+                        className="mt-[1.1vw] inline-flex w-fit items-center gap-[0.6vw] rounded-full bg-[#F47B20] whitespace-nowrap px-[1.6vw] py-[0.8vw] text-[clamp(0.75rem,1.2vw,1.5rem)] font-semibold leading-none text-white shadow-[0_0.4vw_1.2vw_rgba(244,123,32,0.35)] transition hover:brightness-110 active:scale-95"
                       >
                         {slide.mobileCta}
                         <ArrowRight className="size-[1.7vw] min-h-4 min-w-4" strokeWidth={2.5} aria-hidden />

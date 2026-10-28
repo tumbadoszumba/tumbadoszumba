@@ -118,6 +118,28 @@ export function HeroBanner() {
                   quality={90}
                   sizes="(min-width: 1920px) 1920px, 100vw"
                 />
+                {/* Web: texto y botón reales sobre la imagen (mismo diseño que en celular) */}
+                {slide.id === 1 && (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-y-0 left-0 hidden w-[48%] bg-gradient-to-r from-white/85 via-white/55 to-transparent sm:block"
+                      aria-hidden
+                    />
+                    <div className="absolute inset-y-0 left-[6%] z-10 hidden w-[34%] flex-col justify-center sm:flex">
+                      <span className="mb-[1.2vw] block h-[0.35vw] min-h-[3px] w-[4vw] rounded-full bg-[#F0531E]" aria-hidden />
+                      <p className="text-[clamp(1.4rem,2.8vw,3.4rem)] font-extrabold leading-[1.05] tracking-tight text-[#0b1330]">{slide.mobileTitle}</p>
+                      <p className="mt-[0.8vw] text-[clamp(0.85rem,1.5vw,1.8rem)] leading-snug text-slate-600">{slide.mobileSubtitle}</p>
+                      <Link
+                        href={slide.mobileHref}
+                        draggable={false}
+                        className="mt-[1.6vw] inline-flex w-fit items-center gap-[0.6vw] rounded-full bg-[#F0531E] whitespace-nowrap px-[1.8vw] py-[0.9vw] text-[clamp(0.8rem,1.3vw,1.6rem)] font-bold leading-none text-white shadow-[0_0.5vw_1.4vw_rgba(240,83,30,0.35)] transition hover:brightness-110 active:scale-95"
+                      >
+                        {slide.mobileCta}
+                        <ArrowRight className="size-[1.7vw] min-h-4 min-w-4" strokeWidth={2.5} aria-hidden />
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
             </CarouselItem>
           ))}

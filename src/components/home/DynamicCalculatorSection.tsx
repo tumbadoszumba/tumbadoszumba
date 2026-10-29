@@ -145,6 +145,13 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
         }}
         onChange={(e) => handleType(e.target.value)}
         onBlur={() => setDraft(null)}
+        onKeyDown={(e) => {
+          // Enter solo confirma la cantidad (no abre la proforma)
+          if (e.key === "Enter") {
+            e.preventDefault()
+            e.currentTarget.blur()
+          }
+        }}
         aria-label={`Cantidad de ${label}`}
         className="w-11 lg:w-0 lg:flex-1 bg-transparent text-center font-mono font-bold text-sm lg:text-[13px] focus:outline-none"
         style={{ color: "#F0931E" }}
@@ -252,6 +259,34 @@ export function DynamicCalculatorSection() {
     const timer = setTimeout(() => setHighlightKey(null), 1600)
     return () => clearTimeout(timer)
   }, [highlightKey])
+
+  const contactFormRef = useRef<HTMLFormElement>(null)
+
+  // Enter hace el paso siguiente: calcular → «Cotizar proforma» → «Cotizar precio por WhatsApp».
+  // Sin lista de dependencias a propósito: así usa siempre el estado actual.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Enter" || e.isComposing || e.defaultPrevented || loading) return
+      const target = e.target as HTMLElement
+      // Un botón o enlace con foco ya hace lo suyo con Enter
+      if (target.closest("button, a, textarea")) return
+      if (!showResults) {
+        e.preventDefault()
+        handleCalc()
+        return
+      }
+      // En el formulario de contacto, Enter ya lo envía; el buscador maneja su propio Enter
+      if (addingProduct || target.closest("form")) return
+      e.preventDefault()
+      if (!showContactForm) {
+        if (results.length > 0) setShowContactForm(true)
+      } else {
+        contactFormRef.current?.requestSubmit()
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  })
 
   const {
     register,
@@ -837,6 +872,11 @@ export function DynamicCalculatorSection() {
                       onChange={(e) => handleProductQuery(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") closeProductSearch()
+                        // Enter agrega el primer resultado
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          if (!searchingProducts && productResults[0]) handleAddProduct(productResults[0])
+                        }
                       }}
                       placeholder="Buscar producto, ej. gyplac"
                       aria-label="Buscar un producto para agregar"
@@ -1040,6 +1080,7 @@ export function DynamicCalculatorSection() {
                 ) : (
                   <motion.form
                     key="form"
+                    ref={contactFormRef}
                     onSubmit={onSubmitProforma}
                     // Mismo resorte con el que se abre la calculadora (CategoryMosaic)
                     initial={{ height: 0, opacity: 0 }}

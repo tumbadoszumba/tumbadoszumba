@@ -241,15 +241,14 @@ export function CategoryMosaic() {
             <motion.div
               layoutId="calc-card"
               className="relative w-full max-w-sm overflow-hidden"
-              style={{ borderRadius: 6 }}
+              style={{ borderRadius: 8 }}
               transition={{ type: "spring", stiffness: 93, damping: 17 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={() => setOpenCalc(false)}
-                className="absolute right-3 top-3 z-20 flex items-center justify-center w-8 h-8 text-white/70 hover:text-white transition-colors"
-                style={{ background: "rgba(255,255,255,0.1)" }}
+                className="absolute right-3 top-3 z-20 flex items-center justify-center w-8 h-8 text-slate-500 hover:text-slate-900 transition-colors"
                 aria-label="Cerrar calculadora"
               >
                 <X size={16} strokeWidth={1.75} />

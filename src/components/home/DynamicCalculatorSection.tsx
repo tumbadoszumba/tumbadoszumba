@@ -114,10 +114,10 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
   }
 
   const stepClass =
-    "w-8 flex items-center justify-center text-sky-300 transition-colors hover:bg-sky-500/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+    "w-8 flex items-center justify-center transition-colors text-[#E8530E] hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 
   return (
-    <div className="flex items-stretch h-8 w-[168px] shrink-0 rounded border border-sky-500/40 bg-transparent overflow-hidden">
+    <div className="flex items-stretch h-8 w-[168px] shrink-0 rounded border border-[#E8530E]/40 bg-white dark:border-orange-500/40 dark:bg-transparent overflow-hidden">
       <div className="flex items-stretch flex-1 min-w-0">
         <button
           type="button"
@@ -146,7 +146,7 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
             }
           }}
           aria-label={`Cantidad de ${label}`}
-          className="w-0 flex-1 min-w-0 bg-transparent text-center font-bold text-sm lg:text-[13px] text-white focus:outline-none"
+          className="w-0 flex-1 min-w-0 bg-transparent text-center font-bold text-sm lg:text-[13px] text-[#E8530E] dark:text-orange-300 focus:outline-none"
         />
         <button
           type="button"
@@ -157,7 +157,7 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
           <Plus size={13} strokeWidth={2.25} />
         </button>
       </div>
-      <span className="flex w-[64px] shrink-0 items-center justify-center truncate border-l border-sky-500/40 bg-sky-500/10 px-1 text-[11px] font-semibold text-sky-300">
+      <span className="flex w-[64px] shrink-0 items-center justify-center truncate border-l border-[#E8530E]/40 bg-orange-50 text-[#E8530E] dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-300 px-1 text-[11px] font-semibold">
         {unit}
       </span>
     </div>
@@ -709,13 +709,13 @@ export function DynamicCalculatorSection() {
       </AnimatePresence>
 
       {showResults && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(2,6,16,0.85)", backdropFilter: "blur(4px)" }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#020610]/85" style={{ backdropFilter: "blur(4px)" }}>
           <div
-            className="w-full max-w-[500px] lg:max-w-[980px] overflow-hidden rounded-md flex flex-col bg-[#0a1628] text-slate-100 border border-white/10"
+            className="w-full max-w-[500px] lg:max-w-[980px] overflow-hidden rounded-md flex flex-col bg-white text-slate-900 dark:bg-[#0a1628] dark:text-slate-100 dark:border dark:border-white/10"
             style={{ maxHeight: "90vh", boxShadow: "0 32px 64px rgba(2,6,23,0.4)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-5 lg:px-6 py-3 border-b-2 border-[#FF6A00] flex-shrink-0">
+            <div className="flex items-center justify-between gap-3 px-5 lg:px-6 py-3 border-b-2 border-[#1456d6] dark:border-[#1d6bff] flex-shrink-0">
               <div className="flex items-center gap-3.5 min-w-0">
                 <Image
                   src="https://res.cloudinary.com/dxkmtbde/image/upload/v1789012176/basictech/media/general/nfxz6pdjr7z9uiyuihda.png"
@@ -725,14 +725,14 @@ export function DynamicCalculatorSection() {
                   className="flex-shrink-0 w-12 h-12 object-contain"
                 />
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Tumbados Zumba</p>
-                  <h3 className="text-lg lg:text-xl font-extrabold leading-tight text-sky-400">Tu proyecto empieza aquí</h3>
-                  <p className="text-xs text-slate-400">Revisa tus materiales y solicita una cotización.</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Tumbados Zumba</p>
+                  <h3 className="text-lg lg:text-xl font-extrabold leading-tight text-[#0B2A6B] dark:text-slate-100">Tu proyecto empieza aquí</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Revisa tus materiales y solicita una cotización.</p>
                 </div>
               </div>
               <button
                 onClick={closeResults}
-                className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded transition-colors text-slate-300 hover:bg-white/10 hover:text-white"
+                className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded transition-colors text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
                 aria-label="Cerrar"
               >
                 <X size={18} strokeWidth={2} />
@@ -745,17 +745,17 @@ export function DynamicCalculatorSection() {
                 {/* Título + «Agregar producto»: los resultados de la búsqueda flotan sobre la lista */}
                 <div className="relative z-20 px-5 lg:px-6 py-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-lg font-extrabold mr-1 text-sky-400">Lista de materiales</h4>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-sky-500/15 text-sky-300">
+                    <h4 className="text-lg font-extrabold mr-1 text-[#E8530E] dark:text-[#FF7A2E]">Lista de materiales</h4>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
                       <Package size={12} strokeWidth={2} />
                       {fmt(parseFloat(area))} m²
                     </span>
                     {isGypsumCalc(selectedCalc) && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-sky-500/15 text-sky-300">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
                         {APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha {PLANCHA_TABS.find((p) => p.key === planchaType)!.label}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-sky-500/15 text-sky-300">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
                       <Layers size={12} strokeWidth={2} />
                       {results.length} {results.length === 1 ? "material" : "materiales"}
                     </span>
@@ -773,7 +773,7 @@ export function DynamicCalculatorSection() {
                       <button
                         type="button"
                         onClick={() => setAddingProduct(true)}
-                        className="ml-auto inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-semibold transition-colors border-sky-500 text-sky-300 bg-transparent hover:bg-sky-500/10"
+                        className="ml-auto inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-semibold transition-colors border-[#E8530E] text-[#E8530E] bg-white hover:bg-orange-50 dark:border-orange-500 dark:text-orange-300 dark:bg-transparent dark:hover:bg-orange-500/10"
                       >
                         <Plus size={14} strokeWidth={2.25} />
                         Agregar producto
@@ -791,7 +791,7 @@ export function DynamicCalculatorSection() {
                         exit={{ opacity: 0, transition: { duration: 0.12 } }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                       >
-                        <Search size={14} strokeWidth={2} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white" />
+                        <Search size={14} strokeWidth={2} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:text-white/40 dark:hover:text-white" />
                         <input
                           type="text"
                           autoFocus
@@ -807,33 +807,33 @@ export function DynamicCalculatorSection() {
                           }}
                           placeholder="Buscar producto, ej. gyplac"
                           aria-label="Buscar un producto para agregar"
-                          className="w-full pl-9 pr-10 py-2.5 rounded text-sm lg:text-[13px] border focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white/5 text-white placeholder:text-white/30 border-sky-500"
+                          className="w-full pl-9 pr-10 py-2.5 rounded text-sm lg:text-[13px] border focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white text-slate-900 placeholder:text-slate-400 border-orange-400 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:border-orange-500"
                         />
                         <button
                           type="button"
                           onClick={closeProductSearch}
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center transition-colors text-white/40 hover:text-white"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-900 dark:text-white/40 dark:hover:text-white"
                           aria-label="Cerrar el buscador"
                         >
                           <X size={14} strokeWidth={2} />
                         </button>
 
                         <div
-                          className="absolute left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto py-1 rounded border bg-[#0f1d3a] border-white/10"
-                          style={{ boxShadow: "0 16px 40px rgba(2,6,23,0.3)", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.2) transparent" }}
+                          className="absolute left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto py-1 rounded border bg-white border-slate-200 dark:bg-[#0f1d3a] dark:border-white/10"
+                          style={{ boxShadow: "0 16px 40px rgba(2,6,23,0.3)", scrollbarWidth: "thin", scrollbarColor: "rgba(128,128,128,0.45) transparent" }}
                         >
                           {searchingProducts ? (
-                            <p className="px-3 py-3 text-xs text-slate-400">Buscando…</p>
+                            <p className="px-3 py-3 text-xs text-slate-500 dark:text-slate-400">Buscando…</p>
                           ) : searchFailed ? (
-                            <p className="px-3 py-3 text-xs text-red-400">
+                            <p className="px-3 py-3 text-xs text-red-600 dark:text-red-400">
                               No pudimos buscar en este momento. Escribe de nuevo para reintentar.
                             </p>
                           ) : productQuery.trim().length < 2 ? (
-                            <p className="px-3 py-3 text-xs text-slate-400">
+                            <p className="px-3 py-3 text-xs text-slate-500 dark:text-slate-400">
                               Escribe al menos 2 letras del producto que necesitas.
                             </p>
                           ) : productResults.length === 0 ? (
-                            <p className="px-3 py-3 text-xs text-slate-400">
+                            <p className="px-3 py-3 text-xs text-slate-500 dark:text-slate-400">
                               No encontramos productos con «{productQuery.trim()}».
                             </p>
                           ) : (
@@ -844,7 +844,7 @@ export function DynamicCalculatorSection() {
                                   key={product.id}
                                   type="button"
                                   onClick={() => handleAddProduct(product)}
-                                  className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-white/5"
+                                  className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-slate-50 dark:hover:bg-white/5"
                                 >
                                   <div className="relative w-8 h-8 flex-shrink-0 overflow-hidden rounded bg-white border border-slate-200">
                                     {product.images[0] ? (
@@ -853,8 +853,8 @@ export function DynamicCalculatorSection() {
                                       <Package size={16} strokeWidth={1.5} className="m-auto h-full text-slate-400" />
                                     )}
                                   </div>
-                                  <span className="flex-1 min-w-0 text-[13px] truncate text-white">{product.name}</span>
-                                  <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-sky-300">
+                                  <span className="flex-1 min-w-0 text-[13px] truncate text-slate-900 dark:text-white">{product.name}</span>
+                                  <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-[#E8530E] dark:text-orange-300">
                                     <Plus size={12} strokeWidth={2.25} />
                                     {inList ? "Sumar 1" : "Agregar"}
                                   </span>
@@ -871,14 +871,14 @@ export function DynamicCalculatorSection() {
                 {/* Lista */}
                 <div
                   className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
-                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.2) transparent" }}
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(128,128,128,0.45) transparent" }}
                 >
                   {results.length === 0 ? (
                     <div className="py-10 text-center">
-                      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-lg bg-sky-500/15 text-sky-300">
+                      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-lg bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
                         <Package size={22} strokeWidth={1.5} />
                       </div>
-                      <p className="text-sm text-slate-400">Lista de materiales vacía</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Lista de materiales vacía</p>
                       <button
                         type="button"
                         onClick={handleResetItems}
@@ -891,11 +891,11 @@ export function DynamicCalculatorSection() {
                   ) : (
                     <>
                       {/* Encabezado de columnas (solo escritorio) */}
-                      <div className="hidden lg:flex items-center gap-3 px-6 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-sky-300">
+                      <div className="hidden lg:flex items-center gap-3 px-6 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         <span className="flex-1 pl-4">Material</span>
                         <span className="w-[204px]">Cantidad</span>
                       </div>
-                      <div className="divide-y divide-white/10">
+                      <div className="divide-y divide-slate-200 dark:divide-white/10">
                         {results.map((item, idx) => (
                           <div
                             key={rowKey(item)}
@@ -903,23 +903,23 @@ export function DynamicCalculatorSection() {
                               if (el) rowRefs.current.set(rowKey(item), el)
                               else rowRefs.current.delete(rowKey(item))
                             }}
-                            className="px-5 lg:px-6 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-2.5 lg:py-1.5 transition-colors duration-700 odd:bg-white/[0.03]"
+                            className="px-5 lg:px-6 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-2.5 lg:py-1.5 transition-colors duration-700 odd:bg-slate-50 dark:odd:bg-white/[0.03]"
                             style={highlightKey === rowKey(item) ? { background: "rgba(255,106,0,0.14)" } : undefined}
                           >
                             <div className="flex items-center gap-2.5 min-w-0 basis-full sm:basis-auto sm:flex-1">
-                              <div className="w-1.5 h-1.5 flex-shrink-0 bg-[#FF6A00]" />
+                              <div className="w-1.5 h-1.5 flex-shrink-0 bg-[#1456d6] dark:bg-[#1d6bff]" />
                               {item.productSlug ? (
                                 <a
                                   href={`/products/${item.productSlug}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   title="Ver el producto en la tienda"
-                                  className="text-sm lg:text-[13px] font-semibold truncate underline-offset-4 hover:underline transition-colors text-slate-100"
+                                  className="text-sm lg:text-[13px] font-semibold truncate underline-offset-4 hover:underline transition-colors text-[#0B2A6B] dark:text-slate-100"
                                 >
                                   {item.name}
                                 </a>
                               ) : (
-                                <span className="text-sm lg:text-[13px] font-semibold truncate text-slate-100">{item.name}</span>
+                                <span className="text-sm lg:text-[13px] font-semibold truncate text-[#0B2A6B] dark:text-slate-100">{item.name}</span>
                               )}
                             </div>
                             <div className="flex items-center justify-between gap-2 w-full pl-4 sm:w-auto sm:pl-0 lg:w-[204px]">
@@ -932,7 +932,7 @@ export function DynamicCalculatorSection() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveItem(idx)}
-                                className="w-7 h-7 flex items-center justify-center rounded transition-all active:scale-95 text-white/40 hover:bg-red-500/15 hover:text-red-400"
+                                className="w-7 h-7 flex items-center justify-center rounded transition-all active:scale-95 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:text-white/40 dark:hover:bg-red-500/15 dark:hover:text-red-400"
                                 title="Quitar material"
                                 aria-label={`Eliminar ${item.name}`}
                               >
@@ -946,26 +946,25 @@ export function DynamicCalculatorSection() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 px-5 lg:px-6 py-3 border-t text-xs border-white/10 text-slate-400">
+                <div className="flex items-center gap-2 px-5 lg:px-6 py-3 border-t text-xs border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400">
                   <Info size={14} strokeWidth={1.75} className="flex-shrink-0" />
                   Ajusta las cantidades según tu proyecto.
                 </div>
               </div>
 
               {/* Panel de cotización */}
-              <aside className="flex flex-col gap-4 p-5 lg:w-[330px] lg:flex-shrink-0 lg:overflow-y-auto border-t lg:border-t-0 lg:border-l bg-white/[0.03] border-white/10">
+              <aside className="flex flex-col gap-4 p-5 lg:w-[330px] lg:flex-shrink-0 lg:overflow-y-auto border-t lg:border-t-0 lg:border-l bg-orange-50/50 border-slate-200 dark:bg-white/[0.03] dark:border-white/10">
                 <div
-                  className="rounded-md p-4 text-white"
-                  style={{ background: "linear-gradient(135deg,#0d8cf0 0%,#1456d6 100%)" }}
+                  className="rounded-md p-4 text-white bg-gradient-to-br from-[#FF7A1E] to-[#F0531E]"
                 >
                   <p className="text-lg font-extrabold leading-tight">Tu proyecto</p>
-                  <p className="text-sm text-blue-100 truncate">{selectedCalc?.name}</p>
+                  <p className="text-sm text-white/90 truncate">{selectedCalc?.name}</p>
                   <div className="mt-3 pt-3 border-t border-white/20 flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <span className="flex h-9 w-9 items-center justify-center rounded bg-white/15"><Maximize2 size={16} strokeWidth={2} /></span>
                       <div>
                         <p className="text-base font-extrabold leading-none">{fmt(parseFloat(area))} m²</p>
-                        <p className="text-[11px] text-blue-100">Área</p>
+                        <p className="text-[11px] text-white/90">Área</p>
                       </div>
                     </div>
                     <div className="h-8 w-px bg-white/20" />
@@ -973,27 +972,27 @@ export function DynamicCalculatorSection() {
                       <span className="flex h-9 w-9 items-center justify-center rounded bg-white/15"><Layers size={16} strokeWidth={2} /></span>
                       <div>
                         <p className="text-base font-extrabold leading-none">{results.length}</p>
-                        <p className="text-[11px] text-blue-100">Materiales</p>
+                        <p className="text-[11px] text-white/90">Materiales</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <form ref={contactFormRef} onSubmit={onSubmitProforma} className="flex flex-col gap-3">
-                  <p className="text-base font-extrabold text-sky-400">¿A quién enviamos la cotización?</p>
-                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-300">
+                  <p className="text-base font-extrabold text-[#E8530E] dark:text-[#FF7A2E]">¿A quién enviamos la cotización?</p>
+                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     Nombre (opcional)
-                    <input type="text" {...register("contactName")} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white/5 border-white/15 text-white placeholder:text-white/30 focus:border-sky-400" />
+                    <input type="text" {...register("contactName")} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 dark:bg-white/5 dark:border-white/15 dark:text-white dark:placeholder:text-white/30 dark:focus:border-sky-400" />
                   </label>
-                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-300">
+                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     WhatsApp (opcional)
-                    <input type="tel" {...register("contactPhone")} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white/5 border-white/15 text-white placeholder:text-white/30 focus:border-sky-400" />
+                    <input type="tel" {...register("contactPhone")} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 dark:bg-white/5 dark:border-white/15 dark:text-white dark:placeholder:text-white/30 dark:focus:border-sky-400" />
                   </label>
-                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-300">
+                  <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     Correo (opcional)
-                    <input type="email" {...register("contactEmail")} aria-invalid={!!errors.contactEmail} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white/5 border-white/15 text-white placeholder:text-white/30 focus:border-sky-400" />
+                    <input type="email" {...register("contactEmail")} aria-invalid={!!errors.contactEmail} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 dark:bg-white/5 dark:border-white/15 dark:text-white dark:placeholder:text-white/30 dark:focus:border-sky-400" />
                   </label>
-                  {errors.contactEmail && <p className="-mt-1 text-xs text-red-400">{errors.contactEmail.message}</p>}
+                  {errors.contactEmail && <p className="-mt-1 text-xs text-red-600 dark:text-red-400">{errors.contactEmail.message}</p>}
                   <button
                     type="submit"
                     disabled={results.length === 0 || submitting}
@@ -1004,8 +1003,8 @@ export function DynamicCalculatorSection() {
                     </svg>
                     {submitting ? "Enviando..." : "Cotizar por WhatsApp"}
                   </button>
-                  <div className="border-t pt-3 text-center border-white/10">
-                    <button type="button" onClick={closeResults} className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-sky-300">
+                  <div className="border-t pt-3 text-center border-slate-200 dark:border-white/10">
+                    <button type="button" onClick={closeResults} className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-[#E8530E] dark:text-orange-300">
                       <ArrowLeft size={14} strokeWidth={2} />
                       Volver a materiales
                     </button>

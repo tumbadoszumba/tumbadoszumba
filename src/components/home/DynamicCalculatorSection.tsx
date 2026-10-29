@@ -1,16 +1,17 @@
 "use client"
 
 import { useStoreContact } from "@/components/providers/StoreContactProvider"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { motion, AnimatePresence } from "framer-motion"
-import { Calculator } from "@/types"
+import { Calculator, Product } from "@/types"
 import { CalculatorInput } from "@/lib/calculator-templates"
-import { appliesToValues, calcMaterialQty } from "@/lib/calculator-engine"
-import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw } from "lucide-react"
+import { calcMaterialQty } from "@/lib/calculator-engine"
+import { Calculator as CalculatorIcon, Package, X, Trash2, RotateCcw, Plus, Minus, Search, FileText } from "lucide-react"
 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2))
 
@@ -86,12 +87,79 @@ function SegmentedToggle<T extends string>({ label, options, value, onChange }: 
 }
 
 interface MaterialItem {
-  materialId: string
+  /** Material de la calculadora. Los productos agregados con el buscador no lo tienen. */
+  materialId?: string
+  /** Producto de la tienda agregado por el cliente con «Agregar producto». */
+  productId?: string
   name: string
   qty: number
   unit: string
   productSlug?: string | null
   unitPriceOverride?: number
+}
+
+interface QuantityStepperProps {
+  value: number
+  unit: string
+  label: string
+  onChange: (qty: number) => void
+}
+
+// Cantidad editable de la lista: − / + de uno en uno, o escribir el número.
+function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps) {
+  // Texto mientras el cliente escribe; al salir del campo vuelve a mostrar la cantidad guardada.
+  const [draft, setDraft] = useState<string | null>(null)
+
+  function handleType(text: string) {
+    setDraft(text)
+    const qty = parseFloat(text.replace(",", "."))
+    if (qty > 0) onChange(qty)
+  }
+
+  const stepClass =
+    "w-7 flex items-center justify-center transition-colors hover:bg-[rgba(240,115,30,0.18)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+
+  return (
+    <div
+      className="flex items-stretch h-8 lg:w-[150px]"
+      style={{ background: "rgba(240,115,30,0.1)", border: "1px solid rgba(240,115,30,0.22)", color: "#F0931E" }}
+    >
+      <button
+        type="button"
+        onClick={() => onChange(value - 1)}
+        disabled={value <= 1}
+        className={stepClass}
+        aria-label={`Restar 1 a ${label}`}
+      >
+        <Minus size={13} strokeWidth={2.25} />
+      </button>
+      <input
+        type="text"
+        inputMode="decimal"
+        value={draft ?? fmt(value)}
+        onFocus={(e) => {
+          setDraft(fmt(value))
+          e.currentTarget.select()
+        }}
+        onChange={(e) => handleType(e.target.value)}
+        onBlur={() => setDraft(null)}
+        aria-label={`Cantidad de ${label}`}
+        className="w-11 lg:w-0 lg:flex-1 bg-transparent text-center font-mono font-bold text-sm lg:text-[13px] focus:outline-none"
+        style={{ color: "#F0931E" }}
+      />
+      <span className="block self-center max-w-[56px] truncate pr-1 text-[11px] font-semibold" style={{ color: "rgba(240,147,30,0.75)" }}>
+        {unit}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        className={stepClass}
+        aria-label={`Sumar 1 a ${label}`}
+      >
+        <Plus size={13} strokeWidth={2.25} />
+      </button>
+    </div>
+  )
 }
 
 const contactSchema = z.object({
@@ -161,7 +229,17 @@ export function DynamicCalculatorSection() {
   const [inputValues, setInputValues] = useState<Record<string, string>>({})
   const [showResults, setShowResults] = useState(false)
   const [results, setResults] = useState<MaterialItem[]>([])
+  // La lista ya no es la calculada (se quitó, cambió o agregó algo): muestra «Restablecer».
+  const [edited, setEdited] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [showContactForm, setShowContactForm] = useState(false)
+  const [addingProduct, setAddingProduct] = useState(false)
+  const [productQuery, setProductQuery] = useState("")
+  const [productResults, setProductResults] = useState<Product[]>([])
+  const [searchingProducts, setSearchingProducts] = useState(false)
+  const [searchFailed, setSearchFailed] = useState(false)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchAbort = useRef<AbortController | null>(null)
 
   const {
     register,
@@ -259,11 +337,26 @@ export function DynamicCalculatorSection() {
     }
 
     setResults(buildItems(calculator, areaNum))
+    setEdited(false)
+    setShowContactForm(false)
     setShowResults(true)
+  }
+
+  function closeResults() {
+    setShowResults(false)
+    setShowContactForm(false)
+    closeProductSearch()
   }
 
   function handleRemoveItem(index: number) {
     setResults(prev => prev.filter((_, i) => i !== index))
+    setEdited(true)
+  }
+
+  function handleQtyChange(index: number, qty: number) {
+    if (!(qty > 0)) return
+    setResults(prev => prev.map((item, i) => (i === index ? { ...item, qty } : item)))
+    setEdited(true)
   }
 
   function handleResetItems() {
@@ -275,6 +368,64 @@ export function DynamicCalculatorSection() {
     if (areaNum <= 0) return
 
     setResults(buildItems(calculator, areaNum))
+    setEdited(false)
+  }
+
+  function closeProductSearch() {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchAbort.current?.abort()
+    setAddingProduct(false)
+    setProductQuery("")
+    setProductResults([])
+    setSearchingProducts(false)
+    setSearchFailed(false)
+  }
+
+  function handleProductQuery(text: string) {
+    setProductQuery(text)
+    setSearchFailed(false)
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchAbort.current?.abort()
+
+    const q = text.trim()
+    if (q.length < 2) {
+      setProductResults([])
+      setSearchingProducts(false)
+      return
+    }
+
+    setSearchingProducts(true)
+    searchTimer.current = setTimeout(async () => {
+      const controller = new AbortController()
+      searchAbort.current = controller
+      try {
+        // Mismo buscador del encabezado: solo devuelve productos visibles en la tienda.
+        const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+        if (controller.signal.aborted) return
+        setProductResults(data?.products ?? [])
+      } catch (err) {
+        if (controller.signal.aborted) return
+        console.error("Error searching products:", err)
+        setProductResults([])
+        setSearchFailed(true)
+      }
+      setSearchingProducts(false)
+    }, 250)
+  }
+
+  // Si el producto ya está en la lista (como material o agregado antes), le suma 1.
+  function handleAddProduct(product: Product) {
+    setResults(prev => {
+      const existing = prev.findIndex(item => item.productSlug === product.slug)
+      if (existing >= 0) {
+        return prev.map((item, i) => (i === existing ? { ...item, qty: item.qty + 1 } : item))
+      }
+      return [...prev, { productId: product.id, name: product.name, qty: 1, unit: "und", productSlug: product.slug }]
+    })
+    setEdited(true)
+    closeProductSearch()
   }
 
   const onSubmitProforma = handleSubmit(async (data) => {
@@ -300,12 +451,14 @@ export function DynamicCalculatorSection() {
           contactName: data.contactName || null,
           contactPhone: data.contactPhone || null,
           contactEmail: data.contactEmail || null,
-          items: results.map(item => ({
-            materialId: item.materialId,
-            quantity: item.qty,
-            nameOverride: item.name,
-            unitPriceOverride: item.unitPriceOverride,
-          })),
+          items: results.map(item => item.productId
+            ? { productId: item.productId, quantity: item.qty }
+            : {
+                materialId: item.materialId,
+                quantity: item.qty,
+                nameOverride: item.name,
+                unitPriceOverride: item.unitPriceOverride,
+              }),
         }),
       })
       const body = await res.json().catch(() => null)
@@ -566,9 +719,8 @@ export function DynamicCalculatorSection() {
       {showResults && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(2,4,15,0.88)", backdropFilter: "blur(8px)" }}>
           <div
-            className="w-full overflow-hidden"
+            className="w-full max-w-[500px] lg:max-w-[720px] overflow-hidden"
             style={{
-              maxWidth: 500,
               maxHeight: "90vh",
               background: "linear-gradient(180deg, #0d1a35 0%, #091224 100%)",
               border: "1px solid rgba(255,255,255,0.08)",
@@ -578,7 +730,7 @@ export function DynamicCalculatorSection() {
             }}
           >
             {/* Header del modal */}
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="px-5 lg:px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div
@@ -607,7 +759,7 @@ export function DynamicCalculatorSection() {
                       <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
                         {results.length} {results.length === 1 ? "material" : "materiales"}
                       </span>
-                      {selectedCalc && results.length < selectedCalc.materials.filter((mat) => appliesToValues(mat.rules, inputValues)).length && (
+                      {edited && results.length > 0 && (
                         <button
                           type="button"
                           onClick={handleResetItems}
@@ -622,7 +774,7 @@ export function DynamicCalculatorSection() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowResults(false)}
+                  onClick={closeResults}
                   className="w-8 h-8 flex items-center justify-center transition-colors flex-shrink-0"
                   style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}
                   aria-label="Cerrar"
@@ -633,7 +785,10 @@ export function DynamicCalculatorSection() {
             </div>
 
             {/* Lista de materiales */}
-            <div className="overflow-y-auto flex-1 px-5 py-2">
+            <div
+              className="overflow-y-auto flex-1 px-5 lg:px-6 py-2"
+              style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.18) transparent" }}
+            >
               {results.length === 0 ? (
                 <div className="py-10 text-center">
                   <div
@@ -654,132 +809,284 @@ export function DynamicCalculatorSection() {
                   </button>
                 </div>
               ) : (
-                <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                  {results.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-3 gap-3">
-                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                        <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: "#F0731E", opacity: 0.7 }} />
-                        {item.productSlug ? (
-                          <a
-                            href={`/products/${item.productSlug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Ver el producto en la tienda"
-                            className="text-sm text-white truncate underline decoration-white/25 underline-offset-4 hover:decoration-[#F0731E] hover:text-[#F0931E] transition-colors"
+                <>
+                  {/* Encabezado de columnas (solo escritorio) */}
+                  <div
+                    className="hidden lg:flex items-center gap-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: "rgba(180,200,255,0.45)" }}
+                  >
+                    <span className="flex-1 pl-4">Material</span>
+                    <span className="w-[186px]">Cantidad</span>
+                  </div>
+                  <div className="divide-y divide-white/[0.06]">
+                    {results.map((item, idx) => (
+                      <div
+                        key={item.materialId ?? item.productId ?? idx}
+                        className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-3 lg:py-2.5"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 basis-full sm:basis-auto sm:flex-1">
+                          <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: "#F0731E", opacity: 0.7 }} />
+                          {item.productSlug ? (
+                            <a
+                              href={`/products/${item.productSlug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Ver el producto en la tienda"
+                              className="text-sm lg:text-[13px] text-white truncate underline decoration-white/25 underline-offset-4 hover:decoration-[#F0731E] hover:text-[#F0931E] transition-colors"
+                            >
+                              {item.name}
+                            </a>
+                          ) : (
+                            <span className="text-sm lg:text-[13px] text-white truncate">{item.name}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 w-full pl-4 sm:w-auto sm:pl-0 lg:w-[186px]">
+                          <QuantityStepper
+                            value={item.qty}
+                            unit={item.unit}
+                            label={item.name}
+                            onChange={(qty) => handleQtyChange(idx, qty)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(idx)}
+                            className="w-7 h-7 flex items-center justify-center transition-all active:scale-95"
+                            style={{ color: "rgba(255,255,255,0.3)" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "rgba(239,68,68,0.12)"
+                              e.currentTarget.style.color = "#ef4444"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent"
+                              e.currentTarget.style.color = "rgba(255,255,255,0.3)"
+                            }}
+                            title="Quitar material"
+                            aria-label={`Eliminar ${item.name}`}
                           >
-                            {item.name}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-white truncate">{item.name}</span>
-                        )}
+                            <Trash2 size={14} strokeWidth={1.75} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span
-                          className="font-mono font-bold text-sm px-2.5 py-1"
-                          style={{ background: "rgba(240,115,30,0.12)", color: "#F0931E", border: "1px solid rgba(240,115,30,0.2)" }}
-                        >
-                          {fmt(item.qty)} {item.unit}
-                        </span>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Agregar otro producto de la tienda a la lista */}
+              <div className="py-3">
+                <AnimatePresence initial={false} mode="wait">
+                  {!addingProduct ? (
+                    <motion.button
+                      key="add"
+                      type="button"
+                      onClick={() => setAddingProduct(true)}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors bg-[rgba(240,115,30,0.04)] hover:bg-[rgba(240,115,30,0.1)]"
+                      style={{ color: "#F0931E", border: "1px dashed rgba(240,115,30,0.4)" }}
+                    >
+                      <Plus size={14} strokeWidth={2.25} />
+                      Agregar producto
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      key="search"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0, transition: { duration: 0.2 } }}
+                      transition={{ height: { type: "spring", stiffness: 110, damping: 18 }, opacity: { duration: 0.25, delay: 0.05 } }}
+                      className="overflow-hidden"
+                    >
+                      <div className="relative">
+                        <Search
+                          size={14}
+                          strokeWidth={2}
+                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+                          style={{ color: "rgba(255,255,255,0.35)" }}
+                        />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={productQuery}
+                          onChange={(e) => handleProductQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") closeProductSearch()
+                          }}
+                          placeholder="Buscar producto, ej. gyplac"
+                          aria-label="Buscar un producto para agregar"
+                          className="w-full pl-9 pr-10 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none"
+                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(240,115,30,0.45)" }}
+                        />
                         <button
                           type="button"
-                          onClick={() => handleRemoveItem(idx)}
-                          className="w-7 h-7 flex items-center justify-center transition-all active:scale-95"
-                          style={{ color: "rgba(255,255,255,0.3)" }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(239,68,68,0.12)"
-                            e.currentTarget.style.color = "#ef4444"
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent"
-                            e.currentTarget.style.color = "rgba(255,255,255,0.3)"
-                          }}
-                          title="Quitar material"
-                          aria-label={`Eliminar ${item.name}`}
+                          onClick={closeProductSearch}
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center transition-colors hover:text-white"
+                          style={{ color: "rgba(255,255,255,0.45)" }}
+                          aria-label="Cerrar el buscador"
                         >
-                          <Trash2 size={14} strokeWidth={1.75} />
+                          <X size={14} strokeWidth={2} />
+                        </button>
+                      </div>
+                      <div className="mt-1">
+                        {searchingProducts ? (
+                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Buscando…</p>
+                        ) : searchFailed ? (
+                          <p className="px-2 py-3 text-xs" style={{ color: "#ff9b7a" }}>
+                            No pudimos buscar en este momento. Escribe de nuevo para reintentar.
+                          </p>
+                        ) : productQuery.trim().length < 2 ? (
+                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                            Escribe al menos 2 letras del producto que necesitas.
+                          </p>
+                        ) : productResults.length === 0 ? (
+                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                            No encontramos productos con «{productQuery.trim()}».
+                          </p>
+                        ) : (
+                          productResults.map((product) => {
+                            const inList = results.some((item) => item.productSlug === product.slug)
+                            return (
+                              <button
+                                key={product.id}
+                                type="button"
+                                onClick={() => handleAddProduct(product)}
+                                className="w-full flex items-center gap-3 px-2 py-2 text-left transition-colors hover:bg-white/5"
+                              >
+                                <div className="relative w-8 h-8 flex-shrink-0 overflow-hidden bg-white">
+                                  {product.images[0] ? (
+                                    <Image src={product.images[0]} alt="" fill sizes="32px" className="object-contain" />
+                                  ) : (
+                                    <Package size={16} strokeWidth={1.5} className="m-auto h-full text-slate-400" />
+                                  )}
+                                </div>
+                                <span className="flex-1 min-w-0 text-[13px] text-white truncate">{product.name}</span>
+                                <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold" style={{ color: "#F0931E" }}>
+                                  <Plus size={12} strokeWidth={2.25} />
+                                  {inList ? "Sumar 1" : "Agregar"}
+                                </span>
+                              </button>
+                            )
+                          })
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Footer: «Cotizar proforma» se despliega en el formulario de contacto */}
+            <div className="px-5 lg:px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <AnimatePresence initial={false} mode="wait">
+                {!showContactForm ? (
+                  <motion.div
+                    key="cta"
+                    className="flex justify-end"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setShowContactForm(true)}
+                      disabled={results.length === 0}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{
+                        background: "linear-gradient(135deg, #FF7A1E 0%, #F0531E 100%)",
+                        boxShadow: "0 4px 16px rgba(240,83,30,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      <FileText size={15} strokeWidth={2} />
+                      Cotizar proforma
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="form"
+                    onSubmit={onSubmitProforma}
+                    // Mismo resorte con el que se abre la calculadora (CategoryMosaic)
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0, transition: { duration: 0.2 } }}
+                    transition={{ height: { type: "spring", stiffness: 110, damping: 18 }, opacity: { duration: 0.25, delay: 0.05 } }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-3">
+                      <div className="grid gap-3 lg:grid-cols-3">
+                        <input
+                          type="text"
+                          {...register("contactName")}
+                          placeholder="Tu nombre (opcional)"
+                          className="w-full px-4 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none transition-colors"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                          }}
+                          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
+                          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                        />
+                        <input
+                          type="tel"
+                          {...register("contactPhone")}
+                          placeholder="Tu número de WhatsApp (opcional)"
+                          className="w-full px-4 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none transition-colors"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                          }}
+                          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
+                          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                        />
+                        <input
+                          type="email"
+                          {...register("contactEmail")}
+                          placeholder="Tu correo (opcional)"
+                          aria-invalid={!!errors.contactEmail}
+                          className="w-full px-4 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none transition-colors"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                          }}
+                          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
+                          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                        />
+                      </div>
+                      {errors.contactEmail && (
+                        <p className="-mt-1 text-xs" style={{ color: "#ff9b7a" }}>{errors.contactEmail.message}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowContactForm(false)}
+                          className="py-2.5 px-4 text-sm font-medium transition-colors"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            color: "rgba(255,255,255,0.6)",
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={results.length === 0 || submitting}
+                          className="flex-1 py-2.5 text-sm font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                          style={{
+                            background: "linear-gradient(135deg, #25D366 0%, #1aad54 100%)",
+                          }}
+                        >
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                          </svg>
+                          {submitting ? "Enviando..." : "Cotizar precio por WhatsApp"}
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </motion.form>
+                )}
+              </AnimatePresence>
             </div>
-
-            {/* Footer con inputs y acciones */}
-            <form onSubmit={onSubmitProforma} className="px-5 py-4 space-y-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-              <input
-                type="text"
-                {...register("contactName")}
-                placeholder="Tu nombre (opcional)"
-                aria-invalid={!!errors.contactName}
-                className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-              />
-              {errors.contactName && (
-                <p className="-mt-2 text-xs" style={{ color: "#ff9b7a" }}>{errors.contactName.message}</p>
-              )}
-              <input
-                type="tel"
-                {...register("contactPhone")}
-                placeholder="Tu número de WhatsApp (opcional)"
-                aria-invalid={!!errors.contactPhone}
-                className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-              />
-              {errors.contactPhone && (
-                <p className="-mt-2 text-xs" style={{ color: "#ff9b7a" }}>{errors.contactPhone.message}</p>
-              )}
-              <input
-                type="email"
-                {...register("contactEmail")}
-                placeholder="Tu correo (opcional)"
-                className="w-full px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(240,115,30,0.5)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-              />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowResults(false)}
-                  className="py-2.5 px-4 text-sm font-medium transition-colors"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: "rgba(255,255,255,0.6)",
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={results.length === 0 || submitting}
-                  className="flex-1 py-2.5 text-sm font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
-                  style={{
-                    background: "linear-gradient(135deg, #25D366 0%, #1aad54 100%)",
-                    boxShadow: results.length > 0 ? "0 4px 16px rgba(37,211,102,0.35)" : "none",
-                  }}
-                >
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                  </svg>
-                  {submitting ? "Enviando..." : "Cotizar precio por WhatsApp"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

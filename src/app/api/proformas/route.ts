@@ -24,17 +24,26 @@ const calculatorProformaSchema = z.object({
   ...contactSchema,
   items: z
     .array(
-      z.object({
-        materialId: z.string().min(1),
-        quantity: z.number().positive(),
-        // El cliente puede pedir una variante del material (ej. plancha RH en vez
-        // de normal) con un nombre/precio distinto al que tiene guardado el material
-        // en la calculadora; si no vienen, se usa lo que ya tiene el material.
-        nameOverride: z.string().trim().min(1).optional(),
-        unitPriceOverride: z.number().positive().optional(),
-      })
+      z.union([
+        z.object({
+          materialId: z.string().min(1),
+          quantity: z.number().positive(),
+          // El cliente puede pedir una variante del material (ej. plancha RH en vez
+          // de normal) con un nombre/precio distinto al que tiene guardado el material
+          // en la calculadora; si no vienen, se usa lo que ya tiene el material.
+          nameOverride: z.string().trim().min(1).optional(),
+          unitPriceOverride: z.number().positive().optional(),
+        }),
+        // Producto de la tienda que el cliente agregó a la lista con el buscador.
+        // Nombre y precio se toman de la BD, como en el carrito.
+        z.object({
+          productId: z.string().min(1),
+          quantity: z.number().positive(),
+        }),
+      ])
     )
-    .min(1),
+    .min(1)
+    .max(200),
 })
 
 // Proforma desde el carrito (pedido por WhatsApp). Los nombres y precios se
@@ -139,9 +148,32 @@ export async function POST(request: NextRequest) {
       }
 
       const materialsById = new Map(calculator.materials.map((m) => [m.id, m]))
+      const addedProductIds = items.flatMap((item) => ("productId" in item ? [item.productId] : []))
+      const addedProducts = addedProductIds.length
+        ? await prisma.product.findMany({
+            where: { id: { in: addedProductIds }, isActive: true },
+            select: { id: true, name: true, price: true },
+          })
+        : []
+      const productsById = new Map(addedProducts.map((p) => [p.id, p]))
 
       itemsData = items
         .map((item, index) => {
+          if ("productId" in item) {
+            const product = productsById.get(item.productId)
+            if (!product) return null
+            const unitPrice = Number(product.price)
+            return {
+              name: product.name,
+              unit: "und",
+              quantity: item.quantity,
+              originalQuantity: item.quantity,
+              unitPrice,
+              originalUnitPrice: unitPrice,
+              productId: product.id,
+              position: index,
+            }
+          }
           const material = materialsById.get(item.materialId)
           if (!material) return null
           const unitPrice = item.unitPriceOverride ?? material.unitPrice

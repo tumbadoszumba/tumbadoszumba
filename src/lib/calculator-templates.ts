@@ -86,7 +86,7 @@ export const CALCULATOR_TEMPLATES: CalculatorTemplate[] = [
   {
     name: "Cielo Raso Estructura Vista",
     description: "Sistema de cielo raso con grilla visible.",
-    inputs: [area, { key: "grid", label: "Variante de grilla", type: "select", required: true, defaultValue: "2x2", options: [{ label: "2×2", value: "2x2" }, { label: "2×4", value: "2x4" }] }],
+    inputs: [area, { key: "grid", label: "Variante de plancha", type: "select", required: true, defaultValue: "2x2", options: [{ label: "60×60", value: "2x2" }, { label: "60×120", value: "2x4" }] }],
   },
   {
     name: "Pared Doble Forramiento",

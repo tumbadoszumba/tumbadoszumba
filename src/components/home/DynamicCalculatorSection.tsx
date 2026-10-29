@@ -98,6 +98,8 @@ interface MaterialItem {
   unitPriceOverride?: number
 }
 
+const rowKey = (item: MaterialItem) => item.materialId ?? item.productId ?? item.name
+
 interface QuantityStepperProps {
   value: number
   unit: string
@@ -240,6 +242,16 @@ export function DynamicCalculatorSection() {
   const [searchFailed, setSearchFailed] = useState(false)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchAbort = useRef<AbortController | null>(null)
+  // Fila recién agregada: la lista baja hasta ella y la resalta un momento.
+  const [highlightKey, setHighlightKey] = useState<string | null>(null)
+  const rowRefs = useRef(new Map<string, HTMLDivElement>())
+
+  useEffect(() => {
+    if (!highlightKey) return
+    rowRefs.current.get(highlightKey)?.scrollIntoView({ behavior: "smooth", block: "center" })
+    const timer = setTimeout(() => setHighlightKey(null), 1600)
+    return () => clearTimeout(timer)
+  }, [highlightKey])
 
   const {
     register,
@@ -417,6 +429,8 @@ export function DynamicCalculatorSection() {
 
   // Si el producto ya está en la lista (como material o agregado antes), le suma 1.
   function handleAddProduct(product: Product) {
+    const existing = results.find(item => item.productSlug === product.slug)
+    setHighlightKey(existing ? rowKey(existing) : product.id)
     setResults(prev => {
       const existing = prev.findIndex(item => item.productSlug === product.slug)
       if (existing >= 0) {
@@ -784,6 +798,126 @@ export function DynamicCalculatorSection() {
               </div>
             </div>
 
+            {/* Agregar otro producto: barra fija sobre la lista; los resultados flotan encima de ella */}
+            <div className="relative z-20 px-5 lg:px-6 py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <AnimatePresence initial={false} mode="wait">
+                {!addingProduct ? (
+                  <motion.button
+                    key="add"
+                    type="button"
+                    onClick={() => setAddingProduct(true)}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors bg-[rgba(240,115,30,0.04)] hover:bg-[rgba(240,115,30,0.1)]"
+                    style={{ color: "#F0931E", border: "1px dashed rgba(240,115,30,0.4)" }}
+                  >
+                    <Plus size={14} strokeWidth={2.25} />
+                    Agregar producto
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="search"
+                    className="relative"
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  >
+                    <Search
+                      size={14}
+                      strokeWidth={2}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+                      style={{ color: "rgba(255,255,255,0.35)" }}
+                    />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={productQuery}
+                      onChange={(e) => handleProductQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") closeProductSearch()
+                      }}
+                      placeholder="Buscar producto, ej. gyplac"
+                      aria-label="Buscar un producto para agregar"
+                      className="w-full pl-9 pr-10 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(240,115,30,0.45)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={closeProductSearch}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center transition-colors hover:text-white"
+                      style={{ color: "rgba(255,255,255,0.45)" }}
+                      aria-label="Cerrar el buscador"
+                    >
+                      <X size={14} strokeWidth={2} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {addingProduct && (
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute left-5 right-5 lg:left-6 lg:right-6 top-full mt-1 max-h-72 overflow-y-auto py-1"
+                    style={{
+                      background: "#0f1d3a",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "rgba(255,255,255,0.18) transparent",
+                    }}
+                  >
+                    {searchingProducts ? (
+                      <p className="px-3 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Buscando…</p>
+                    ) : searchFailed ? (
+                      <p className="px-3 py-3 text-xs" style={{ color: "#ff9b7a" }}>
+                        No pudimos buscar en este momento. Escribe de nuevo para reintentar.
+                      </p>
+                    ) : productQuery.trim().length < 2 ? (
+                      <p className="px-3 py-3 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                        Escribe al menos 2 letras del producto que necesitas.
+                      </p>
+                    ) : productResults.length === 0 ? (
+                      <p className="px-3 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        No encontramos productos con «{productQuery.trim()}».
+                      </p>
+                    ) : (
+                      productResults.map((product) => {
+                        const inList = results.some((item) => item.productSlug === product.slug)
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => handleAddProduct(product)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-white/5"
+                          >
+                            <div className="relative w-8 h-8 flex-shrink-0 overflow-hidden bg-white">
+                              {product.images[0] ? (
+                                <Image src={product.images[0]} alt="" fill sizes="32px" className="object-contain" />
+                              ) : (
+                                <Package size={16} strokeWidth={1.5} className="m-auto h-full text-slate-400" />
+                              )}
+                            </div>
+                            <span className="flex-1 min-w-0 text-[13px] text-white truncate">{product.name}</span>
+                            <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold" style={{ color: "#F0931E" }}>
+                              <Plus size={12} strokeWidth={2.25} />
+                              {inList ? "Sumar 1" : "Agregar"}
+                            </span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Lista de materiales */}
             <div
               className="overflow-y-auto flex-1 px-5 lg:px-6 py-2"
@@ -821,8 +955,13 @@ export function DynamicCalculatorSection() {
                   <div className="divide-y divide-white/[0.06]">
                     {results.map((item, idx) => (
                       <div
-                        key={item.materialId ?? item.productId ?? idx}
-                        className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-3 lg:py-2.5"
+                        key={rowKey(item)}
+                        ref={(el) => {
+                          if (el) rowRefs.current.set(rowKey(item), el)
+                          else rowRefs.current.delete(rowKey(item))
+                        }}
+                        className="-mx-2 px-2 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-3 lg:py-2.5 transition-colors duration-700"
+                        style={{ background: highlightKey === rowKey(item) ? "rgba(240,115,30,0.14)" : "transparent" }}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 basis-full sm:basis-auto sm:flex-1">
                           <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: "#F0731E", opacity: 0.7 }} />
@@ -871,109 +1010,6 @@ export function DynamicCalculatorSection() {
                   </div>
                 </>
               )}
-
-              {/* Agregar otro producto de la tienda a la lista */}
-              <div className="py-3">
-                <AnimatePresence initial={false} mode="wait">
-                  {!addingProduct ? (
-                    <motion.button
-                      key="add"
-                      type="button"
-                      onClick={() => setAddingProduct(true)}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0, transition: { duration: 0.12 } }}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors bg-[rgba(240,115,30,0.04)] hover:bg-[rgba(240,115,30,0.1)]"
-                      style={{ color: "#F0931E", border: "1px dashed rgba(240,115,30,0.4)" }}
-                    >
-                      <Plus size={14} strokeWidth={2.25} />
-                      Agregar producto
-                    </motion.button>
-                  ) : (
-                    <motion.div
-                      key="search"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0, transition: { duration: 0.2 } }}
-                      transition={{ height: { type: "spring", stiffness: 110, damping: 18 }, opacity: { duration: 0.25, delay: 0.05 } }}
-                      className="overflow-hidden"
-                    >
-                      <div className="relative">
-                        <Search
-                          size={14}
-                          strokeWidth={2}
-                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                          style={{ color: "rgba(255,255,255,0.35)" }}
-                        />
-                        <input
-                          type="text"
-                          autoFocus
-                          value={productQuery}
-                          onChange={(e) => handleProductQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Escape") closeProductSearch()
-                          }}
-                          placeholder="Buscar producto, ej. gyplac"
-                          aria-label="Buscar un producto para agregar"
-                          className="w-full pl-9 pr-10 py-2.5 text-sm lg:text-[13px] text-white placeholder:text-white/25 focus:outline-none"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(240,115,30,0.45)" }}
-                        />
-                        <button
-                          type="button"
-                          onClick={closeProductSearch}
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center transition-colors hover:text-white"
-                          style={{ color: "rgba(255,255,255,0.45)" }}
-                          aria-label="Cerrar el buscador"
-                        >
-                          <X size={14} strokeWidth={2} />
-                        </button>
-                      </div>
-                      <div className="mt-1">
-                        {searchingProducts ? (
-                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Buscando…</p>
-                        ) : searchFailed ? (
-                          <p className="px-2 py-3 text-xs" style={{ color: "#ff9b7a" }}>
-                            No pudimos buscar en este momento. Escribe de nuevo para reintentar.
-                          </p>
-                        ) : productQuery.trim().length < 2 ? (
-                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                            Escribe al menos 2 letras del producto que necesitas.
-                          </p>
-                        ) : productResults.length === 0 ? (
-                          <p className="px-2 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                            No encontramos productos con «{productQuery.trim()}».
-                          </p>
-                        ) : (
-                          productResults.map((product) => {
-                            const inList = results.some((item) => item.productSlug === product.slug)
-                            return (
-                              <button
-                                key={product.id}
-                                type="button"
-                                onClick={() => handleAddProduct(product)}
-                                className="w-full flex items-center gap-3 px-2 py-2 text-left transition-colors hover:bg-white/5"
-                              >
-                                <div className="relative w-8 h-8 flex-shrink-0 overflow-hidden bg-white">
-                                  {product.images[0] ? (
-                                    <Image src={product.images[0]} alt="" fill sizes="32px" className="object-contain" />
-                                  ) : (
-                                    <Package size={16} strokeWidth={1.5} className="m-auto h-full text-slate-400" />
-                                  )}
-                                </div>
-                                <span className="flex-1 min-w-0 text-[13px] text-white truncate">{product.name}</span>
-                                <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold" style={{ color: "#F0931E" }}>
-                                  <Plus size={12} strokeWidth={2.25} />
-                                  {inList ? "Sumar 1" : "Agregar"}
-                                </span>
-                              </button>
-                            )
-                          })
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
             </div>
 
             {/* Footer: «Cotizar proforma» se despliega en el formulario de contacto */}

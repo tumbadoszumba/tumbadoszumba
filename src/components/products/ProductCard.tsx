@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, ShoppingCart, Star, Check } from "lucide-react"
+import { Heart, ShoppingCart, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -128,12 +128,6 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
         </Link>
-
-        {/* Rating */}
-        <div className="mt-1 flex items-center gap-0.5">
-          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-          <span className="text-xs font-medium text-muted-foreground">{product.rating}</span>
-        </div>
 
         {/* Price */}
         <div className="mt-1 flex items-baseline gap-1.5">

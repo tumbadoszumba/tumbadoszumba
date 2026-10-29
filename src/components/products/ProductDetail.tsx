@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, ShoppingCart, Star, Minus, Plus, Truck, RotateCcw, ShieldCheck, Check } from "lucide-react"
+import { Heart, ShoppingCart, Minus, Plus, Truck, RotateCcw, ShieldCheck, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -56,24 +56,6 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
       {/* Name */}
       <h1 className="text-2xl font-bold sm:text-3xl">{product.name}</h1>
-
-      {/* Rating */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-4 w-4 ${
-                i < Math.floor(product.rating)
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-muted-foreground"
-              }`}
-            />
-          ))}
-        </div>
-        <span className="text-sm font-medium">{product.rating}</span>
-        <span className="text-sm text-muted-foreground">(128 resenas)</span>
-      </div>
 
       {/* Price */}
       <div className="flex items-baseline gap-3">

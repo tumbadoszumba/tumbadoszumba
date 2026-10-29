@@ -38,7 +38,7 @@ export function transformProduct(product: ProductWithRelations): Product {
     stock: product.stock,
     isNew: product.isNew,
     isFeatured: product.isFeatured,
-    rating: 4.5, // Default rating - could be calculated from reviews in the future
+    rating: 4.5, // Valor fijo, NO son reseñas reales: no mostrarlo en la tienda hasta tener reseñas (T-012)
     freeShipping: product.freeShipping ?? false,
     returnPolicy: product.returnPolicy ?? false,
     returnDays: product.returnDays ?? null,

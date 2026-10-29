@@ -15,13 +15,15 @@ interface BrandItem {
 export function BrandSection({ brands: allBrands }: { brands: BrandItem[] }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  // Excluir "SIN MARCA", "GENERICO" u homólogos de la sección "Marcas que Confiamos"
+  // Excluir "SIN MARCA", "GENERICO" u homólogos de la sección "Marcas que Confiamos",
+  // y las marcas sin productos visibles en la tienda (su enlace llevaría a un listado vacío)
   const brands = useMemo(
     () =>
       allBrands.filter((brand) => {
         const cleanName = brand.name.trim().toLowerCase()
         const cleanSlug = brand.slug.trim().toLowerCase()
         return (
+          (brand.productCount ?? 0) > 0 &&
           cleanName !== "sin marca" &&
           cleanSlug !== "sin-marca" &&
           cleanName !== "generico" &&

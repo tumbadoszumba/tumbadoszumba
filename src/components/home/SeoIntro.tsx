@@ -32,6 +32,13 @@ export function SeoIntro({ categories }: { categories: Category[] }) {
         perfilería metálica, molduras, iluminación LED y herramientas, y también instalamos tumbados y paredes de
         gypsum. Atendemos pedidos en todo el Ecuador.
       </p>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed">
+        ¿No sabes cuánto material necesitas? Usa nuestra{" "}
+        <Link href="/calculadora-de-gypsum" className="font-medium text-brand-orange underline underline-offset-2">
+          calculadora de gypsum
+        </Link>
+        : ingresas los metros cuadrados y te sugiere planchas, perfilería, tornillos y masilla.
+      </p>
 
       {withProducts.length > 0 && (
         <nav aria-label="Categorías" className="mt-4">

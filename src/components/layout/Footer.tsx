@@ -19,6 +19,7 @@ const footerLinks = {
     { name: "Trabaja con Nosotros", href: "/contacto" },
   ],
   ayuda: [
+    { name: "Calculadora de gypsum", href: "/calculadora-de-gypsum" },
     { name: "Centro de Ayuda", href: "/contacto" },
     { name: "Envíos y Entregas", href: "/contacto" },
     { name: "Devoluciones", href: "/contacto" },

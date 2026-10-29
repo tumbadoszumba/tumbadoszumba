@@ -44,6 +44,7 @@ export async function GET() {
     `- [Catálogo completo](${absoluteUrl("/products")}): todos los productos`,
     `- [Ofertas](${absoluteUrl("/ofertas")}): productos con descuento`,
     `- [Instalaciones](${absoluteUrl("/instalaciones")}): trabajos de instalación de tumbados y gypsum`,
+    `- [Calculadora de gypsum](${absoluteUrl("/calculadora-de-gypsum")}): calcula planchas, perfilería y tornillos por m² y pide la proforma`,
     `- [Ideas de diseño](${absoluteUrl("/diseno-e-ideas")}): inspiración para tumbados y acabados`,
     `- [Contacto](${absoluteUrl("/contacto")}): dirección, horario y formulario`,
   ]

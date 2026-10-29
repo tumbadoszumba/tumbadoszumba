@@ -10,6 +10,7 @@ const staticPages: { path: string; changeFrequency: "daily" | "weekly" | "monthl
   { path: "/products", changeFrequency: "daily", priority: 0.9 },
   { path: "/ofertas", changeFrequency: "daily", priority: 0.8 },
   { path: "/instalaciones", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/calculadora-de-gypsum", changeFrequency: "monthly", priority: 0.8 },
   { path: "/diseno-e-ideas", changeFrequency: "weekly", priority: 0.6 },
   { path: "/contacto", changeFrequency: "yearly", priority: 0.7 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.2 },

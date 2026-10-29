@@ -191,6 +191,24 @@ export function contactPageJsonLd() {
   }
 }
 
+/** Herramienta gratuita en la web (calculadora de materiales), ofrecida por la tienda. */
+export function calculatorJsonLd({ path, name, description }: { path: string; name: string; description: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": `${absoluteUrl(path)}#app`,
+    name,
+    description,
+    url: absoluteUrl(path),
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Web",
+    inLanguage: SITE.language,
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    provider: { "@id": BUSINESS_ID },
+  }
+}
+
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   return {
     "@context": "https://schema.org",

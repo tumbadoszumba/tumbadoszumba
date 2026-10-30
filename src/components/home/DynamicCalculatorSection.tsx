@@ -703,7 +703,7 @@ export function DynamicCalculatorSection() {
           {/* Botón */}
           <button
             onClick={handleCalc}
-            className="w-full flex items-center justify-center gap-2.5 rounded-md bg-[#FF6A00] hover:bg-[#EB5F00] text-white font-bold text-sm py-2.5 transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2.5 rounded-md bg-gradient-to-br from-[#1456d6] to-[#0B47B8] hover:brightness-110 dark:from-[#0d8cf0] dark:to-[#1456d6] text-white font-bold text-sm py-2.5 transition-all active:scale-[0.98]"
           >
             <CalculatorIcon size={18} strokeWidth={2} />
             Calcular materiales

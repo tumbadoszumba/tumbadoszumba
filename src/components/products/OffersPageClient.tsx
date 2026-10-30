@@ -140,7 +140,7 @@ function OffersContent({ initialProducts }: { initialProducts: Product[] }) {
       <div className="flex gap-8">
         {/* Sidebar - Desktop */}
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-24">
+          <div className="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain pr-2" style={{ scrollbarWidth: "thin" }}>
             <FilterSidebar filters={filters} onFiltersChange={handleFiltersChange} />
           </div>
         </aside>

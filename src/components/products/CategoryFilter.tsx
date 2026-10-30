@@ -27,7 +27,7 @@ export function CategoryFilter({
   }
 
   return (
-    <div className="border-b pb-4">
+    <div className="flex min-h-0 flex-col border-b pb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between py-2 font-medium"
@@ -41,7 +41,7 @@ export function CategoryFilter({
       </button>
 
       {isOpen && (
-        <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+        <div className="mt-2 min-h-24 max-h-48 space-y-2 overflow-y-auto">
           {categories.length === 0 ? (
             <p className="text-xs text-muted-foreground py-2">No hay categorías disponibles</p>
           ) : (

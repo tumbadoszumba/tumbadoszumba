@@ -33,7 +33,7 @@ export function FilterSidebar({ filters, onFiltersChange, showTitle = true }: Fi
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-col gap-4">
       <div className={showTitle ? "flex items-center justify-between" : "flex items-center justify-end"}>
         {showTitle && <h2 className="text-lg font-semibold">Filtros</h2>}
         {hasActiveFilters && (

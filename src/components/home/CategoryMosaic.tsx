@@ -248,7 +248,7 @@ export function CategoryMosaic() {
               <button
                 type="button"
                 onClick={() => setOpenCalc(false)}
-                className="absolute right-3 top-3 z-20 flex items-center justify-center w-8 h-8 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+                className="absolute right-3 top-3 z-20 flex items-center justify-center w-8 h-8 text-slate-500 hover:text-slate-900 transition-colors"
                 aria-label="Cerrar calculadora"
               >
                 <X size={16} strokeWidth={1.75} />

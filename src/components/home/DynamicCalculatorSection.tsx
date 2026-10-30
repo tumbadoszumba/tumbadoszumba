@@ -114,10 +114,10 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
   }
 
   const stepClass =
-    "w-8 flex items-center justify-center transition-colors text-[#E8530E] hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+    "w-8 flex items-center justify-center transition-colors text-blue-800 hover:bg-blue-50 dark:text-sky-300 dark:hover:bg-sky-500/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
 
   return (
-    <div className="flex items-stretch h-8 w-[168px] shrink-0 rounded border border-[#E8530E]/40 bg-white dark:border-orange-500/40 dark:bg-transparent overflow-hidden">
+    <div className="flex items-stretch h-8 w-[168px] shrink-0 rounded border border-blue-800/30 bg-white dark:border-sky-500/40 dark:bg-transparent overflow-hidden">
       <div className="flex items-stretch flex-1 min-w-0">
         <button
           type="button"
@@ -146,7 +146,7 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
             }
           }}
           aria-label={`Cantidad de ${label}`}
-          className="w-0 flex-1 min-w-0 bg-transparent text-center font-bold text-sm lg:text-[13px] text-[#E8530E] dark:text-orange-300 focus:outline-none"
+          className="w-0 flex-1 min-w-0 bg-transparent text-center font-bold text-sm lg:text-[13px] text-blue-800 dark:text-white focus:outline-none"
         />
         <button
           type="button"
@@ -157,7 +157,7 @@ function QuantityStepper({ value, unit, label, onChange }: QuantityStepperProps)
           <Plus size={13} strokeWidth={2.25} />
         </button>
       </div>
-      <span className="flex w-[64px] shrink-0 items-center justify-center truncate border-l border-[#E8530E]/40 bg-orange-50 text-[#E8530E] dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-300 px-1 text-[11px] font-semibold">
+      <span className="flex w-[64px] shrink-0 items-center justify-center truncate border-l border-blue-800/30 bg-blue-50 text-blue-800 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 px-1 text-[11px] font-semibold">
         {unit}
       </span>
     </div>
@@ -715,7 +715,7 @@ export function DynamicCalculatorSection() {
             style={{ maxHeight: "90vh", boxShadow: "0 32px 64px rgba(2,6,23,0.4)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-5 lg:px-6 py-3 border-b-2 border-[#1456d6] dark:border-[#1d6bff] flex-shrink-0">
+            <div className="flex items-center justify-between gap-3 px-5 lg:px-6 py-3 border-b-2 border-[#FF6A00] flex-shrink-0">
               <div className="flex items-center gap-3.5 min-w-0">
                 <Image
                   src="https://res.cloudinary.com/dxkmtbde/image/upload/v1789012176/basictech/media/general/nfxz6pdjr7z9uiyuihda.png"
@@ -726,7 +726,7 @@ export function DynamicCalculatorSection() {
                 />
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Tumbados Zumba</p>
-                  <h3 className="text-lg lg:text-xl font-extrabold leading-tight text-[#0B2A6B] dark:text-slate-100">Tu proyecto empieza aquí</h3>
+                  <h3 className="text-lg lg:text-xl font-extrabold leading-tight text-[#0B47B8] dark:text-sky-400">Tu proyecto empieza aquí</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Revisa tus materiales y solicita una cotización.</p>
                 </div>
               </div>
@@ -745,17 +745,17 @@ export function DynamicCalculatorSection() {
                 {/* Título + «Agregar producto»: los resultados de la búsqueda flotan sobre la lista */}
                 <div className="relative z-20 px-5 lg:px-6 py-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-lg font-extrabold mr-1 text-[#E8530E] dark:text-[#FF7A2E]">Lista de materiales</h4>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
+                    <h4 className="text-lg font-extrabold mr-1 text-[#0B47B8] dark:text-sky-400">Lista de materiales</h4>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-blue-50 text-blue-800 dark:bg-sky-500/15 dark:text-sky-300">
                       <Package size={12} strokeWidth={2} />
                       {fmt(parseFloat(area))} m²
                     </span>
                     {isGypsumCalc(selectedCalc) && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-blue-50 text-blue-800 dark:bg-sky-500/15 dark:text-sky-300">
                         {APPLICATION_TABS.find((a) => a.key === applicationType)!.label} · Plancha {PLANCHA_TABS.find((p) => p.key === planchaType)!.label}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm bg-blue-50 text-blue-800 dark:bg-sky-500/15 dark:text-sky-300">
                       <Layers size={12} strokeWidth={2} />
                       {results.length} {results.length === 1 ? "material" : "materiales"}
                     </span>
@@ -773,7 +773,7 @@ export function DynamicCalculatorSection() {
                       <button
                         type="button"
                         onClick={() => setAddingProduct(true)}
-                        className="ml-auto inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-semibold transition-colors border-[#E8530E] text-[#E8530E] bg-white hover:bg-orange-50 dark:border-orange-500 dark:text-orange-300 dark:bg-transparent dark:hover:bg-orange-500/10"
+                        className="ml-auto inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-semibold transition-colors border-blue-700 text-blue-800 bg-white hover:bg-blue-50 dark:border-sky-500 dark:text-sky-300 dark:bg-transparent dark:hover:bg-sky-500/10"
                       >
                         <Plus size={14} strokeWidth={2.25} />
                         Agregar producto
@@ -807,7 +807,7 @@ export function DynamicCalculatorSection() {
                           }}
                           placeholder="Buscar producto, ej. gyplac"
                           aria-label="Buscar un producto para agregar"
-                          className="w-full pl-9 pr-10 py-2.5 rounded text-sm lg:text-[13px] border focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white text-slate-900 placeholder:text-slate-400 border-orange-400 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:border-orange-500"
+                          className="w-full pl-9 pr-10 py-2.5 rounded text-sm lg:text-[13px] border focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white text-slate-900 placeholder:text-slate-400 border-blue-500 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:border-sky-500"
                         />
                         <button
                           type="button"
@@ -854,7 +854,7 @@ export function DynamicCalculatorSection() {
                                     )}
                                   </div>
                                   <span className="flex-1 min-w-0 text-[13px] truncate text-slate-900 dark:text-white">{product.name}</span>
-                                  <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-[#E8530E] dark:text-orange-300">
+                                  <span className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-blue-700 dark:text-sky-300">
                                     <Plus size={12} strokeWidth={2.25} />
                                     {inList ? "Sumar 1" : "Agregar"}
                                   </span>
@@ -875,7 +875,7 @@ export function DynamicCalculatorSection() {
                 >
                   {results.length === 0 ? (
                     <div className="py-10 text-center">
-                      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-lg bg-orange-50 text-[#E8530E] dark:bg-orange-500/15 dark:text-orange-300">
+                      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-lg bg-blue-50 text-blue-800 dark:bg-sky-500/15 dark:text-sky-300">
                         <Package size={22} strokeWidth={1.5} />
                       </div>
                       <p className="text-sm text-slate-500 dark:text-slate-400">Lista de materiales vacía</p>
@@ -891,7 +891,7 @@ export function DynamicCalculatorSection() {
                   ) : (
                     <>
                       {/* Encabezado de columnas (solo escritorio) */}
-                      <div className="hidden lg:flex items-center gap-3 px-6 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <div className="hidden lg:flex items-center gap-3 px-6 pt-1 pb-2 text-[11px] font-bold uppercase tracking-wider text-blue-800 dark:text-sky-300">
                         <span className="flex-1 pl-4">Material</span>
                         <span className="w-[204px]">Cantidad</span>
                       </div>
@@ -907,19 +907,19 @@ export function DynamicCalculatorSection() {
                             style={highlightKey === rowKey(item) ? { background: "rgba(255,106,0,0.14)" } : undefined}
                           >
                             <div className="flex items-center gap-2.5 min-w-0 basis-full sm:basis-auto sm:flex-1">
-                              <div className="w-1.5 h-1.5 flex-shrink-0 bg-[#1456d6] dark:bg-[#1d6bff]" />
+                              <div className="w-1.5 h-1.5 flex-shrink-0 bg-[#FF6A00]" />
                               {item.productSlug ? (
                                 <a
                                   href={`/products/${item.productSlug}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   title="Ver el producto en la tienda"
-                                  className="text-sm lg:text-[13px] font-semibold truncate underline-offset-4 hover:underline transition-colors text-[#0B2A6B] dark:text-slate-100"
+                                  className="text-sm lg:text-[13px] font-semibold truncate underline-offset-4 hover:underline transition-colors text-blue-800 dark:text-slate-100"
                                 >
                                   {item.name}
                                 </a>
                               ) : (
-                                <span className="text-sm lg:text-[13px] font-semibold truncate text-[#0B2A6B] dark:text-slate-100">{item.name}</span>
+                                <span className="text-sm lg:text-[13px] font-semibold truncate text-blue-800 dark:text-slate-100">{item.name}</span>
                               )}
                             </div>
                             <div className="flex items-center justify-between gap-2 w-full pl-4 sm:w-auto sm:pl-0 lg:w-[204px]">
@@ -953,9 +953,9 @@ export function DynamicCalculatorSection() {
               </div>
 
               {/* Panel de cotización */}
-              <aside className="flex flex-col gap-4 p-5 lg:w-[330px] lg:flex-shrink-0 lg:overflow-y-auto border-t lg:border-t-0 lg:border-l bg-orange-50/50 border-slate-200 dark:bg-white/[0.03] dark:border-white/10">
+              <aside className="flex flex-col gap-4 p-5 lg:w-[330px] lg:flex-shrink-0 lg:overflow-y-auto border-t lg:border-t-0 lg:border-l bg-blue-50/70 border-slate-200 dark:bg-white/[0.03] dark:border-white/10">
                 <div
-                  className="rounded-md p-4 text-white bg-gradient-to-br from-[#FF7A1E] to-[#F0531E]"
+                  className="rounded-md p-4 text-white bg-gradient-to-br from-[#1456d6] to-[#0B47B8] dark:from-[#0d8cf0] dark:to-[#1456d6]"
                 >
                   <p className="text-lg font-extrabold leading-tight">Tu proyecto</p>
                   <p className="text-sm text-white/90 truncate">{selectedCalc?.name}</p>
@@ -979,7 +979,7 @@ export function DynamicCalculatorSection() {
                 </div>
 
                 <form ref={contactFormRef} onSubmit={onSubmitProforma} className="flex flex-col gap-3">
-                  <p className="text-base font-extrabold text-[#E8530E] dark:text-[#FF7A2E]">¿A quién enviamos la cotización?</p>
+                  <p className="text-base font-extrabold text-[#0B47B8] dark:text-sky-400">¿A quién enviamos la cotización?</p>
                   <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     Nombre (opcional)
                     <input type="text" {...register("contactName")} className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 dark:bg-white/5 dark:border-white/15 dark:text-white dark:placeholder:text-white/30 dark:focus:border-sky-400" />
@@ -1004,7 +1004,7 @@ export function DynamicCalculatorSection() {
                     {submitting ? "Enviando..." : "Cotizar por WhatsApp"}
                   </button>
                   <div className="border-t pt-3 text-center border-slate-200 dark:border-white/10">
-                    <button type="button" onClick={closeResults} className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-[#E8530E] dark:text-orange-300">
+                    <button type="button" onClick={closeResults} className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-blue-700 dark:text-sky-300">
                       <ArrowLeft size={14} strokeWidth={2} />
                       Volver a materiales
                     </button>

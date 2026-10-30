@@ -715,10 +715,10 @@ export function DynamicCalculatorSection() {
       </AnimatePresence>
 
       {showResults && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#020610]/85" style={{ backdropFilter: "blur(4px)" }}>
+        <div className="fixed inset-x-0 top-0 h-dvh z-[100] flex items-center justify-center px-4 py-8 lg:p-4 bg-slate-900/60 dark:bg-[#020610]/85" style={{ backdropFilter: "blur(4px)" }}>
           <div
-            className="w-full max-w-[500px] lg:max-w-[980px] overflow-hidden rounded-md flex flex-col bg-white text-slate-900 dark:bg-[#0a1628] dark:text-slate-100 dark:border dark:border-white/10"
-            style={{ maxHeight: "90vh", boxShadow: "0 32px 64px rgba(2,6,23,0.4)" }}
+            className="w-full max-w-[500px] lg:max-w-[980px] overflow-hidden rounded-md flex flex-col max-h-full lg:max-h-[90vh] bg-white text-slate-900 dark:bg-[#0a1628] dark:text-slate-100 dark:border dark:border-white/10"
+            style={{ boxShadow: "0 32px 64px rgba(2,6,23,0.4)" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between gap-3 px-5 lg:px-6 py-3 border-b-2 border-[#FF6A00] flex-shrink-0">

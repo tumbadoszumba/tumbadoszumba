@@ -992,14 +992,25 @@ export function DynamicCalculatorSection() {
                     disabled={results.length === 0}
                     aria-hidden={showContactForm}
                     tabIndex={showContactForm ? -1 : 0}
-                    className={`lg:hidden items-center justify-center gap-2 rounded px-6 py-2.5 text-sm font-bold text-white bg-[#FF6A00] hover:bg-[#EB5F00] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${showContactForm ? "hidden" : "flex"}`}
+                    className={`lg:hidden items-center justify-center gap-2 rounded px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-[#1456d6] to-[#0B47B8] hover:brightness-110 dark:from-[#0d8cf0] dark:to-[#1456d6] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${showContactForm ? "hidden" : "flex"}`}
                   >
                     <FileText size={15} strokeWidth={2} />
                     Cotizar proforma
                   </button>
                   <div className={`grid transition-[grid-template-rows] duration-300 ease-out lg:grid-rows-[1fr] ${showContactForm ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                   <div className={`flex flex-col gap-2 lg:gap-3 min-h-0 overflow-hidden ${showContactForm ? "" : "invisible lg:visible"}`}>
-                  <p className="text-sm lg:text-base font-extrabold text-[#0B47B8] dark:text-sky-400">¿A quién enviamos la cotización?</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm lg:text-base font-extrabold text-[#0B47B8] dark:text-sky-400">¿A quién enviamos la cotización?</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowContactForm(false)}
+                      className="lg:hidden inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                      aria-label="Cancelar la cotización"
+                    >
+                      Cancelar
+                      <X size={14} strokeWidth={2} />
+                    </button>
+                  </div>
                   <label className="flex flex-col gap-0.5 lg:gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     Nombre (opcional)
                     <input type="text" {...register("contactName")} className="w-full rounded border px-3 py-1.5 lg:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 dark:bg-white/5 dark:border-white/15 dark:text-white dark:placeholder:text-white/30 dark:focus:border-sky-400" />
@@ -1023,14 +1034,10 @@ export function DynamicCalculatorSection() {
                     </svg>
                     {submitting ? "Enviando..." : "Cotizar por WhatsApp"}
                   </button>
-                  <div className="border-t pt-3 text-center border-slate-200 dark:border-white/10">
-                    <button type="button" onClick={closeResults} className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-blue-700 dark:text-sky-300">
+                  <div className="hidden lg:block border-t pt-3 text-center border-slate-200 dark:border-white/10">
+                    <button type="button" onClick={closeResults} className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-blue-700 dark:text-sky-300">
                       <ArrowLeft size={14} strokeWidth={2} />
                       Volver a materiales
-                    </button>
-                    <button type="button" onClick={() => setShowContactForm(false)} className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold transition-colors text-blue-700 dark:text-sky-300">
-                      <ArrowLeft size={14} strokeWidth={2} />
-                      Volver a la lista
                     </button>
                   </div>
                   </div>

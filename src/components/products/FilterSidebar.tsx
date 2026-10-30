@@ -10,9 +10,11 @@ import { FilterState } from "@/types"
 interface FilterSidebarProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
+  /** false cuando el contenedor (el panel del celular) ya muestra su propio título */
+  showTitle?: boolean
 }
 
-export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) {
+export function FilterSidebar({ filters, onFiltersChange, showTitle = true }: FilterSidebarProps) {
   const hasActiveFilters =
     filters.brands.length > 0 ||
     filters.categories.length > 0 ||
@@ -32,8 +34,8 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Filtros</h2>
+      <div className={showTitle ? "flex items-center justify-between" : "flex items-center justify-end"}>
+        {showTitle && <h2 className="text-lg font-semibold">Filtros</h2>}
         {hasActiveFilters && (
           <Button
             variant="ghost"

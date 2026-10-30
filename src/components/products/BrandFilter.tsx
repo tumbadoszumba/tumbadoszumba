@@ -30,7 +30,7 @@ export function BrandFilter({ selectedBrands, onBrandsChange }: BrandFilterProps
   }
 
   return (
-    <div className="border-b pb-4">
+    <div className="flex min-h-0 flex-col border-b pb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between py-2 font-medium"
@@ -44,7 +44,7 @@ export function BrandFilter({ selectedBrands, onBrandsChange }: BrandFilterProps
       </button>
 
       {isOpen && (
-        <div className="mt-2 space-y-3">
+        <div className="mt-2 flex min-h-0 flex-col gap-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -56,7 +56,7 @@ export function BrandFilter({ selectedBrands, onBrandsChange }: BrandFilterProps
             />
           </div>
 
-          <div className="max-h-48 space-y-2 overflow-y-auto">
+          <div className="min-h-24 max-h-48 space-y-2 overflow-y-auto">
             {filteredBrands.length === 0 ? (
               <p className="text-xs text-muted-foreground py-2">No hay marcas disponibles</p>
             ) : (

@@ -101,61 +101,61 @@ function ProductsContent({ initialProducts }: { initialProducts: Product[] }) {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Results count and controls */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
-            {filters.search ? (
-              <>
-                <span>
-                  Resultados para: <span className="text-primary font-mono">&ldquo;{filters.search}&rdquo;</span>
-                </span>
-                <button
-                  onClick={() => router.push("/products")}
-                  className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  title="Quitar búsqueda"
-                >
-                  Limpiar búsqueda
-                  <X className="h-3 w-3" />
-                </button>
-              </>
-            ) : (
-              "Todos los Productos"
-            )}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {loading ? "Cargando..." : `${products.length} productos encontrados`}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <FilterMobile
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            activeFilterCount={activeFilterCount}
-          />
-          <SortSelect
-            value={filters.sortBy}
-            onChange={(sortBy) => {
-              const updated: FilterState = { ...filters, sortBy: sortBy as FilterState["sortBy"], offersOnly: false }
-              setFilters(updated)
-              fetchProducts(updated)
-            }}
-          />
-        </div>
-      </div>
-
       {/* Main content */}
-      <div className="flex gap-8">
+      <div className="flex gap-8 lg:h-[calc(100dvh-14rem)] lg:overflow-hidden">
         {/* Sidebar - Desktop */}
-        <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-24">
+        <aside className="hidden w-64 shrink-0 overflow-y-auto overscroll-contain pr-2 lg:block" style={{ scrollbarWidth: "thin" }}>
+          <div className="flex flex-col">
             <FilterSidebar filters={filters} onFiltersChange={handleFiltersChange} />
           </div>
         </aside>
 
         {/* Products */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-2" style={{ scrollbarWidth: "thin" }}>
+          {/* Results count and controls */}
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
+                {filters.search ? (
+                  <>
+                    <span>
+                      Resultados para: <span className="text-primary font-mono">&ldquo;{filters.search}&rdquo;</span>
+                    </span>
+                    <button
+                      onClick={() => router.push("/products")}
+                      className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      title="Quitar búsqueda"
+                    >
+                      Limpiar búsqueda
+                      <X className="h-3 w-3" />
+                    </button>
+                  </>
+                ) : (
+                  "Todos los Productos"
+                )}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {loading ? "Cargando..." : `${products.length} productos encontrados`}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <FilterMobile
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                activeFilterCount={activeFilterCount}
+              />
+              <SortSelect
+                value={filters.sortBy}
+                onChange={(sortBy) => {
+                  const updated: FilterState = { ...filters, sortBy: sortBy as FilterState["sortBy"], offersOnly: false }
+                  setFilters(updated)
+                  fetchProducts(updated)
+                }}
+              />
+            </div>
+          </div>
+
           <ProductGrid
             products={products}
             viewMode={viewMode}

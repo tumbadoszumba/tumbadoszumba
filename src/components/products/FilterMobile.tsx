@@ -4,6 +4,7 @@ import { SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -36,12 +37,17 @@ export function FilterMobile({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[350px]">
-        <SheetHeader>
-          <SheetTitle>Filtros</SheetTitle>
+      <SheetContent side="left" className="h-dvh w-[88vw] max-w-[360px] gap-0 p-0 sm:max-w-[360px]">
+        <SheetHeader className="flex-shrink-0 border-b px-5 py-4 pr-12 text-left">
+          <SheetTitle className="text-lg">Filtros</SheetTitle>
         </SheetHeader>
-        <div className="mt-6">
-          <FilterSidebar filters={filters} onFiltersChange={onFiltersChange} />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+          <FilterSidebar filters={filters} onFiltersChange={onFiltersChange} showTitle={false} />
+        </div>
+        <div className="flex-shrink-0 border-t px-5 py-3">
+          <SheetClose asChild>
+            <Button className="w-full">Ver resultados</Button>
+          </SheetClose>
         </div>
       </SheetContent>
     </Sheet>

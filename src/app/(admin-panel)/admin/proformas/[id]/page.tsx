@@ -902,6 +902,7 @@ export default function AdminProformaDetailPage() {
               <Input
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
+                onBlur={() => patchProforma({ contactName, contactPhone, contactEmail, contactDocument })}
                 placeholder="Nombre del cliente"
                 className="mt-1"
               />
@@ -918,6 +919,7 @@ export default function AdminProformaDetailPage() {
               <Input
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
+                onBlur={() => patchProforma({ contactName, contactPhone, contactEmail, contactDocument })}
                 placeholder="Ej: 593999999999"
                 className="mt-1"
               />
@@ -935,6 +937,7 @@ export default function AdminProformaDetailPage() {
                 type="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
+                onBlur={() => patchProforma({ contactName, contactPhone, contactEmail, contactDocument })}
                 placeholder="Ej: cliente@correo.com"
                 className="mt-1"
               />
@@ -944,28 +947,24 @@ export default function AdminProformaDetailPage() {
               <Input
                 value={contactDocument}
                 onChange={(e) => setContactDocument(e.target.value)}
+                onBlur={() => patchProforma({ contactName, contactPhone, contactEmail, contactDocument })}
                 placeholder="Ej: 0102030405"
                 className="mt-1"
               />
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              variant="outline"
-              disabled={saving}
-              onClick={() => patchProforma({ contactName, contactPhone, contactEmail, contactDocument })}
-            >
-              Guardar contacto
-            </Button>
-            <Button
-              className="bg-[#25D366] hover:bg-[#1aad54]"
-              disabled={!contactPhone}
-              onClick={handleSendWhatsApp}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Enviar proforma por WhatsApp
-            </Button>
-          </div>
+          {contactPhone && (
+            <div className="hidden sm:flex">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.open(`https://wa.me/${contactPhone.replace(/\D/g, "")}`, "_blank")}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Abrir WhatsApp del cliente
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

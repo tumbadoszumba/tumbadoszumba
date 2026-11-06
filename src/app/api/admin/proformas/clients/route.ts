@@ -23,37 +23,51 @@ export async function GET(request: NextRequest) {
   }
 
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? ""
-  if (q.length < 2) return NextResponse.json({ clients: [] })
+  if (q.length === 1) return NextResponse.json({ clients: [] })
 
   try {
+    const isEmptySearch = q.length === 0
     const contains = { contains: q, mode: "insensitive" as const }
 
     const [users, codeUsers, guestProformas] = await Promise.all([
-      prisma.user.findMany({
-        where: { deletedAt: null, OR: [{ name: contains }, { email: contains }, { phone: { contains: q } }] },
-        select: { id: true, name: true, email: true, phone: true, _count: { select: { proformas: true } } },
-        take: 8,
-      }),
-      // Clientes con cuenta encontrados por el código de una de sus proformas.
-      prisma.proforma.findMany({
-        where: { requestCode: contains, userId: { not: null } },
-        select: { user: { select: { id: true, name: true, email: true, phone: true, _count: { select: { proformas: true } } } } },
-        take: 5,
-      }),
+      isEmptySearch
+        ? prisma.user.findMany({
+            where: { deletedAt: null, proformas: { some: { deletedAt: null } } },
+            select: { id: true, name: true, email: true, phone: true, _count: { select: { proformas: true } } },
+            orderBy: { updatedAt: "desc" },
+            take: 12,
+          })
+        : prisma.user.findMany({
+            where: { deletedAt: null, OR: [{ name: contains }, { email: contains }, { phone: { contains: q } }] },
+            select: { id: true, name: true, email: true, phone: true, _count: { select: { proformas: true } } },
+            take: 8,
+          }),
+      isEmptySearch
+        ? Promise.resolve([] as { user: { id: string; name: string; email: string | null; phone: string | null; _count: { proformas: number } } | null }[])
+        : prisma.proforma.findMany({
+            where: { requestCode: contains, userId: { not: null } },
+            select: { user: { select: { id: true, name: true, email: true, phone: true, _count: { select: { proformas: true } } } } },
+            take: 5,
+          }),
       prisma.proforma.findMany({
         where: {
           deletedAt: null,
           userId: null,
-          OR: [
-            { contactName: contains },
-            { contactPhone: { contains: q } },
-            { contactDocument: { contains: q } },
-            { requestCode: contains },
-          ],
+          contactName: { not: null },
+          ...(isEmptySearch
+            ? {}
+            : {
+                OR: [
+                  { contactName: contains },
+                  { contactPhone: { contains: q } },
+                  { contactDocument: { contains: q } },
+                  { requestCode: contains },
+                ],
+              }),
         },
         orderBy: { createdAt: "desc" },
         select: { contactName: true, contactPhone: true, contactEmail: true, contactDocument: true },
-        take: 50,
+        take: isEmptySearch ? 100 : 50,
       }),
     ])
 

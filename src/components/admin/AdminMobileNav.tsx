@@ -60,9 +60,9 @@ export function AdminMobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden">
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
+        <Button variant="outline" size="sm" className="lg:hidden gap-2">
+          <Menu className="h-4 w-4" />
+          Menú
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">

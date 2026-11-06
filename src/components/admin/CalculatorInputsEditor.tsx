@@ -35,7 +35,7 @@ export function CalculatorInputsEditor({ inputs, onChange }: Props) {
       </div>
 
       {inputs.map((input, index) => (
-        <div key={`${input.key}-${index}`} className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-[1fr_150px_1fr_auto] md:items-end">
+        <div key={index} className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-[1fr_150px_1fr_auto] md:items-end">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Etiqueta</label>
             <Input value={input.label} onChange={(event) => update(index, { label: event.target.value, key: toKey(event.target.value) || input.key })} className="mt-1" />

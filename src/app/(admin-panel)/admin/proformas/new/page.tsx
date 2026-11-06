@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { ChevronLeft, Search, Plus, Trash2, FileText, Download, Save } from "lucide-react"
+import { ChevronLeft, Search, Trash2, FileText, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -40,16 +40,6 @@ interface ClientProforma {
 
 type CatalogProduct = AdminCatalogProduct
 
-// Qué precio del producto se usa al agregarlo: especial (público), contado o
-// compra (costo). Si el producto no tiene ese precio, se usa el especial.
-type PriceKind = "price" | "cashPrice" | "costPrice"
-const PRICE_OPTIONS: { key: PriceKind; label: string }[] = [
-  { key: "price", label: "Precio especial" },
-  { key: "cashPrice", label: "Precio contado" },
-  { key: "costPrice", label: "Precio compra" },
-]
-const priceOf = (p: CatalogProduct, kind: PriceKind) => p[kind] ?? p.price
-
 const emptyToNull = (v: unknown) => (v === "" || v == null ? null : Number(v))
 
 const formSchema = z.object({
@@ -60,7 +50,6 @@ const formSchema = z.object({
   contactPhone: z.string().trim().optional(),
   contactDocument: z.string().trim().optional(),
   contactEmail: z.string().trim().email("Correo inválido").optional().or(z.literal("")),
-  // Cliente con cuenta elegido en «Cliente registrado».
   userId: z.string().optional(),
   items: z
     .array(
@@ -77,14 +66,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-// Quita tildes para buscar «yeso» y encontrar «Yéso», etc.
 const normalize = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
 
-// Página para que un vendedor arme una proforma desde cero, sin calculadora:
-// elige productos del catálogo (o escribe líneas a mano), y se identifica con
-// Local + Vendedor + su clave. Al generarla va al detalle de siempre, donde se
-// edita y se saca el PDF.
 export default function NewProformaPage() {
   const router = useRouter()
   const [branches, setBranches] = useState<Branch[]>([])
@@ -92,12 +76,9 @@ export default function NewProformaPage() {
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
-  // Mismas opciones del PDF que en el detalle de la proforma.
   const [blankClient, setBlankClient] = useState(false)
   const [showUnitPrice, setShowUnitPrice] = useState(false)
   const [showItemTotal, setShowItemTotal] = useState(false)
-  const [priceKind, setPriceKind] = useState<PriceKind>("price")
-  // Cliente nuevo (se escriben los datos) o registrado (se busca y se eligen).
   const [clientMode, setClientMode] = useState<"new" | "registered">("new")
   const [clientQuery, setClientQuery] = useState("")
   const [clientResults, setClientResults] = useState<ProformaClient[]>([])
@@ -126,6 +107,7 @@ export default function NewProformaPage() {
   const { fields, append, remove, update } = useFieldArray({ control, name: "items" })
   const branchId = useWatch({ control, name: "branchId" })
   const items = useWatch({ control, name: "items" })
+  const contactPhone = useWatch({ control, name: "contactPhone" })
 
   useEffect(() => {
     fetch("/api/admin/branches")
@@ -142,20 +124,20 @@ export default function NewProformaPage() {
 
   useEffect(() => {
     const q = clientQuery.trim()
-    if (clientMode !== "registered" || selectedClient || q.length < 2) {
+    if (clientMode !== "registered" || selectedClient) {
       setClientResults([])
       return
     }
+    if (q.length === 1) return
     const timer = setTimeout(() => {
       fetch(`/api/admin/proformas/clients?q=${encodeURIComponent(q)}`)
         .then((res) => (res.ok ? res.json() : { clients: [] }))
         .then((data) => setClientResults(data.clients ?? []))
         .catch(() => setClientResults([]))
-    }, 300)
+    }, q.length === 0 ? 0 : 300)
     return () => clearTimeout(timer)
   }, [clientQuery, clientMode, selectedClient])
 
-  // Proformas anteriores del cliente elegido (por su cuenta y/o su teléfono).
   useEffect(() => {
     if (!selectedClient) {
       setClientHistory(null)
@@ -209,30 +191,18 @@ export default function NewProformaPage() {
     0
   )
 
-  // Al cambiar el precio a usar, se actualizan las líneas del catálogo (las
-  // escritas a mano no cambian).
-  function changePriceKind(kind: PriceKind) {
-    setPriceKind(kind)
-    ;(items ?? []).forEach((item, index) => {
-      const product = item.productId ? catalog.find((p) => p.id === item.productId) : null
-      if (product) update(index, { ...item, unitPrice: priceOf(product, kind) })
-    })
-  }
-
   function addProduct(product: CatalogProduct) {
     const index = (items ?? []).findIndex((item) => item.productId === product.id)
     if (index >= 0) {
       const current = items[index]
       update(index, { ...current, quantity: (Number(current.quantity) || 0) + 1 })
     } else {
-      append({ productId: product.id, name: product.name, unit: "und", quantity: 1, unitPrice: priceOf(product, priceKind) })
+      append({ productId: product.id, name: product.name, unit: "und", quantity: 1, unitPrice: product.price })
     }
     setSearch("")
   }
 
-  // "save": solo guarda. "open"/"download": guarda y saca el PDF con la misma
-  // clave y las opciones elegidas. En todos los casos termina en el detalle.
-  const submitWith = (mode: "save" | "open" | "download") =>
+  const submitWith = (mode: "open" | "download") =>
     handleSubmit(async (values) => {
       setSubmitError(null)
       let created: { id: string; requestCode: string }
@@ -253,33 +223,30 @@ export default function NewProformaPage() {
         return
       }
 
-      if (mode !== "save") {
-        try {
-          const res = await fetch(`/api/admin/proformas/${created.id}/pdf`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              branchId: values.branchId,
-              sellerId: values.sellerId,
-              pin: values.pin,
-              blank: blankClient,
-              download: mode === "download",
-              showUnitPrice,
-              showItemTotal,
-            }),
-          })
-          if (!res.ok) throw new Error("pdf")
-          const url = URL.createObjectURL(await res.blob())
-          // Si el navegador bloquea la pestaña nueva, se descarga.
-          if (mode === "download" || !window.open(url, "_blank")) {
-            const a = document.createElement("a")
-            a.href = url
-            a.download = `proforma-${created.requestCode}.pdf`
-            a.click()
-          }
-        } catch {
-          alert(`La proforma ${created.requestCode} se guardó, pero no se pudo generar el PDF. Sácalo desde el detalle.`)
+      try {
+        const res = await fetch(`/api/admin/proformas/${created.id}/pdf`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            branchId: values.branchId,
+            sellerId: values.sellerId,
+            pin: values.pin,
+            blank: blankClient,
+            download: mode === "download",
+            showUnitPrice,
+            showItemTotal,
+          }),
+        })
+        if (!res.ok) throw new Error("pdf")
+        const url = URL.createObjectURL(await res.blob())
+        if (mode === "download" || !window.open(url, "_blank")) {
+          const a = document.createElement("a")
+          a.href = url
+          a.download = `proforma-${created.requestCode}.pdf`
+          a.click()
         }
+      } catch {
+        alert(`La proforma ${created.requestCode} se guardó, pero no se pudo generar el PDF. Sácalo desde el detalle.`)
       }
 
       router.push(`/admin/proformas/${created.id}`)
@@ -302,78 +269,7 @@ export default function NewProformaPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Vendedor</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="text-sm font-medium">Local</label>
-            <Controller
-              control={control}
-              name="branchId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={(v) => {
-                    field.onChange(v)
-                    setValue("sellerId", "")
-                  }}
-                >
-                  <SelectTrigger className="mt-1 w-full">
-                    <SelectValue placeholder="Elige el local" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeBranches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.branchId && <p className="mt-1 text-xs text-destructive">{errors.branchId.message}</p>}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Vendedor</label>
-            <Controller
-              control={control}
-              name="sellerId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={!branchId}>
-                  <SelectTrigger className="mt-1 w-full">
-                    <SelectValue placeholder="Elige el vendedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sellers.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.sellerId && <p className="mt-1 text-xs text-destructive">{errors.sellerId.message}</p>}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Clave del vendedor</label>
-            {/* new-password: evita que Chrome rellene aquí una contraseña guardada. */}
-            <Input
-              {...register("pin", { setValueAs: (v) => String(v ?? "").replace(/\D/g, "") })}
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              autoComplete="new-password"
-              placeholder="6 dígitos"
-              className="mt-1 font-mono"
-            />
-            {errors.pin && <p className="mt-1 text-xs text-destructive">{errors.pin.message}</p>}
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* 1. Cliente */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Cliente</CardTitle>
@@ -418,7 +314,7 @@ export default function NewProformaPage() {
                   autoComplete="off"
                   className="pl-9"
                 />
-                {clientQuery.trim().length >= 2 && (
+                {clientMode === "registered" && !selectedClient && clientResults.length > 0 && (
                   <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md divide-y max-h-80 overflow-y-auto">
                     {clientResults.length === 0 ? (
                       <p className="p-3 text-sm text-muted-foreground">No se encontraron clientes</p>
@@ -450,99 +346,70 @@ export default function NewProformaPage() {
             ))}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Nombre</label>
-            <Input {...register("contactName")} placeholder="Nombre del cliente" autoComplete="off" className="mt-1" />
-            {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName.message}</p>}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Teléfono</label>
-            <Input {...register("contactPhone")} type="tel" placeholder="0991234567" autoComplete="off" className="mt-1" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Cédula o RUC</label>
-            <Input {...register("contactDocument")} placeholder="Opcional" autoComplete="off" className="mt-1" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Correo</label>
-            <Input {...register("contactEmail")} type="email" placeholder="Opcional" autoComplete="off" className="mt-1" />
-            {errors.contactEmail && <p className="mt-1 text-xs text-destructive">{errors.contactEmail.message}</p>}
-          </div>
+            <div>
+              <label className="text-sm font-medium">Nombre</label>
+              <Input {...register("contactName")} placeholder="Nombre del cliente" autoComplete="off" className="mt-1" />
+              {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName.message}</p>}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Teléfono</label>
+              <Input {...register("contactPhone")} type="tel" placeholder="0991234567" autoComplete="off" className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Cédula o RUC</label>
+              <Input {...register("contactDocument")} placeholder="Opcional" autoComplete="off" className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Correo</label>
+              <Input {...register("contactEmail")} type="email" placeholder="Opcional" autoComplete="off" className="mt-1" />
+              {errors.contactEmail && <p className="mt-1 text-xs text-destructive">{errors.contactEmail.message}</p>}
+            </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* 2. Productos */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Productos</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">Precio a usar:</span>
-            <div className="inline-flex rounded-md border p-1 gap-1">
-              {PRICE_OPTIONS.map((o) => (
-                <button
-                  key={o.key}
-                  type="button"
-                  onClick={() => changePriceKind(o.key)}
-                  className={`px-3 py-1.5 text-sm rounded-sm transition-colors ${
-                    priceKind === o.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">
-              Cambia el precio de los productos del catálogo; si un producto no tiene ese precio, usa el especial.
-            </span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={catalogLoading ? "Cargando productos..." : "Buscar producto por nombre..."}
-                className="pl-9"
-                disabled={catalogLoading}
-              />
-              {search.trim() && (
-                <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md divide-y max-h-80 overflow-y-auto">
-                  {results.length === 0 ? (
-                    <p className="p-3 text-sm text-muted-foreground">No se encontraron productos</p>
-                  ) : (
-                    results.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => addProduct(p)}
-                        className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
-                      >
-                        <span className="flex items-center gap-2 min-w-0">
-                          <span className="truncate">{p.name}</span>
-                          {p.code && <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{p.code}</span>}
-                          {!p.isActive && (
-                            <Badge variant="outline" className="shrink-0 text-[10px] text-muted-foreground">
-                              Oculto
-                            </Badge>
-                          )}
-                        </span>
-                        <span className="text-xs text-muted-foreground shrink-0">${formatPrice(priceOf(p, priceKind))}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => append({ productId: undefined, name: "", unit: "und", quantity: 1, unitPrice: null })}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Línea a mano
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={catalogLoading ? "Cargando productos..." : "Buscar producto por nombre..."}
+              className="pl-9"
+              disabled={catalogLoading}
+            />
+            {search.trim() && (
+              <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md divide-y max-h-80 overflow-y-auto">
+                {results.length === 0 ? (
+                  <p className="p-3 text-sm text-muted-foreground">No se encontraron productos</p>
+                ) : (
+                  results.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => addProduct(p)}
+                      className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                    >
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className="truncate">{p.name}</span>
+                        {p.code && <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{p.code}</span>}
+                        {!p.isActive && (
+                          <Badge variant="outline" className="shrink-0 text-[10px] text-muted-foreground">
+                            Oculto
+                          </Badge>
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground shrink-0">${formatPrice(p.price)}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {fields.length === 0 ? (
@@ -630,6 +497,80 @@ export default function NewProformaPage() {
         </CardContent>
       </Card>
 
+      {/* 3. Vendedor */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Vendedor</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium">Local</label>
+            <Controller
+              control={control}
+              name="branchId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v)
+                    setValue("sellerId", "")
+                  }}
+                >
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="Elige el local" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeBranches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.branchId && <p className="mt-1 text-xs text-destructive">{errors.branchId.message}</p>}
+          </div>
+          <div>
+            <label className="text-sm font-medium">Vendedor</label>
+            <Controller
+              control={control}
+              name="sellerId"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange} disabled={!branchId}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="Elige el vendedor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sellers.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.sellerId && <p className="mt-1 text-xs text-destructive">{errors.sellerId.message}</p>}
+          </div>
+          <div>
+            <label className="text-sm font-medium">Clave del vendedor</label>
+            {/* new-password: evita que Chrome rellene aquí una contraseña guardada. */}
+            <Input
+              {...register("pin", { setValueAs: (v) => String(v ?? "").replace(/\D/g, "") })}
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="new-password"
+              placeholder="6 dígitos"
+              className="mt-1 font-mono"
+            />
+            {errors.pin && <p className="mt-1 text-xs text-destructive">{errors.pin.message}</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 4. Opciones del PDF */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Opciones del PDF</CardTitle>
@@ -660,14 +601,17 @@ export default function NewProformaPage() {
         <Button type="button" variant="ghost" onClick={() => router.push("/admin/proformas")} disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="button" variant="outline" onClick={submitWith("save")} disabled={isSubmitting}>
-          <Save className="h-4 w-4 mr-2" strokeWidth={1.75} />
-          Guardar sin PDF
-        </Button>
-        <Button type="button" variant="outline" onClick={submitWith("download")} disabled={isSubmitting}>
-          <Download className="h-4 w-4 mr-2" strokeWidth={1.75} />
-          Generar y descargar
-        </Button>
+        {contactPhone && (
+          <Button
+            type="button"
+            variant="outline"
+            className="hidden sm:inline-flex"
+            onClick={() => window.open(`https://wa.me/${contactPhone.replace(/\D/g, "")}`, "_blank")}
+          >
+            <MessageCircle className="h-4 w-4 mr-2" strokeWidth={1.75} />
+            Abrir WhatsApp del cliente
+          </Button>
+        )}
         <Button type="submit" disabled={isSubmitting}>
           <FileText className="h-4 w-4 mr-2" strokeWidth={1.75} />
           {isSubmitting ? "Generando..." : "Generar proforma (PDF)"}

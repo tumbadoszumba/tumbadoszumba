@@ -230,7 +230,71 @@ function AdminProformasContent() {
         )}
       </div>
 
-      <Card>
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {loading && proformas.length === 0 ? (
+          <Card><CardContent className="py-12 text-center text-muted-foreground">Cargando proformas...</CardContent></Card>
+        ) : proformas.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" strokeWidth={1.75} />
+              {view === "activas" ? "No se encontraron proformas" : "La papelera está vacía"}
+            </CardContent>
+          </Card>
+        ) : (
+          proformas.map((p) => {
+            const statusInfo = statusConfig[p.status] ?? { label: p.status, className: "bg-gray-400 text-white" }
+            return (
+              <Card key={p.id}>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Link href={`/admin/proformas/${p.id}`} className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">
+                        {p.user ? p.user.name : (p.contactName || "Sin nombre")}
+                      </p>
+                      <p className="font-mono text-xs text-muted-foreground">{p.requestCode ?? "—"}</p>
+                    </Link>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge className={`text-xs ${statusInfo.className}`}>{statusInfo.label}</Badge>
+                      {view === "activas" ? (
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handleTrash(p.id)} aria-label="Mover a la papelera">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      ) : (
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleRestore(p.id)}><RotateCcw className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handlePermanentDelete(p.id)}><X className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Link href={`/admin/proformas/${p.id}`} className="block">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {p.contactPhone && (
+                        <span className="inline-flex items-center gap-1">
+                          <Phone className="h-3 w-3" strokeWidth={1.75} />
+                          {p.contactPhone}
+                        </span>
+                      )}
+                      {p.area != null && <span>{p.area} m²</span>}
+                      <span>{p.itemCount} materiales</span>
+                      <span>{proformaOriginLabel(p)}</span>
+                      <span>
+                        {view === "activas"
+                          ? new Date(p.createdAt).toLocaleDateString("es-EC", { day: "2-digit", month: "short", year: "numeric" })
+                          : `${p.daysRemaining} día${p.daysRemaining === 1 ? "" : "s"}`}
+                      </span>
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            )
+          })
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <Card className="hidden sm:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

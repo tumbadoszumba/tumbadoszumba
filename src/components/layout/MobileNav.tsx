@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { User, Heart, Package, Building2, PanelTop, Layers, Grid3x3, Frame, LayoutDashboard, Lightbulb, RectangleHorizontal, Wrench, Sun, Moon } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
+import { User, Heart, Package, Building2, PanelTop, Layers, Grid3x3, Frame, LayoutDashboard, Lightbulb, RectangleHorizontal, Wrench, Sun, Moon, Calculator, Image as ImageIcon, Hammer, Phone, LogOut, LogIn, UserPlus, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
 import {
   Sheet,
@@ -11,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getSocialLinks } from "@/lib/social"
 import { useStoreContact } from "@/components/providers/StoreContactProvider"
@@ -74,6 +76,9 @@ function ThemeSwitch() {
 // El botón que lo abre es "Menú" en la barra inferior (MobileBottomNav)
 export function MobileNav({ categories = [], open, onOpenChange: setOpen }: MobileNavProps) {
   const socialLinks = getSocialLinks(useStoreContact().whatsapp)
+  const { data: session, status } = useSession()
+  const isAdmin = session?.user?.role === "ADMIN"
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
@@ -81,31 +86,96 @@ export function MobileNav({ categories = [], open, onOpenChange: setOpen }: Mobi
           <SheetTitle className="text-left">Menu</SheetTitle>
         </SheetHeader>
         <div className="mt-6 flex flex-col gap-4">
-          {/* User Actions */}
-          <div className="flex flex-col gap-2">
+          {/* Auth: sesión activa o iniciar sesión */}
+          {status !== "loading" && (
+            <div className="flex flex-col gap-2">
+              {session ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  >
+                    <User className="h-4 w-4" strokeWidth={1.75} />
+                    Mi Cuenta
+                  </Link>
+                  <Link
+                    href="/profile/favorites"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  >
+                    <Heart className="h-4 w-4" strokeWidth={1.75} />
+                    Favoritos
+                  </Link>
+                  <Link
+                    href="/profile/orders"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  >
+                    <Package className="h-4 w-4" strokeWidth={1.75} />
+                    Mis Pedidos
+                  </Link>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Link href="/login" onClick={() => setOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start gap-3">
+                      <LogIn className="h-4 w-4" strokeWidth={1.75} />
+                      Ingresar
+                    </Button>
+                  </Link>
+                  <Link href="/register" onClick={() => setOpen(false)}>
+                    <Button className="w-full justify-start gap-3">
+                      <UserPlus className="h-4 w-4" strokeWidth={1.75} />
+                      Registrarse
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Páginas principales */}
+          <div className="flex flex-col gap-1">
+            <p className="px-3 text-xs font-semibold uppercase text-muted-foreground mb-1">
+              Explorar
+            </p>
             <Link
-              href="/profile"
+              href="/calculadora-de-gypsum"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
             >
-              <User className="h-4 w-4" strokeWidth={1.75} />
-              Mi Cuenta
+              <Calculator className="h-4 w-4" strokeWidth={1.75} />
+              Calculadora de Gypsum
             </Link>
             <Link
-              href="/profile/favorites"
+              href="/instalaciones"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
             >
-              <Heart className="h-4 w-4" strokeWidth={1.75} />
-              Favoritos
+              <Hammer className="h-4 w-4" strokeWidth={1.75} />
+              Instalaciones
             </Link>
             <Link
-              href="/profile/orders"
+              href="/diseno-e-ideas"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
             >
-              <Package className="h-4 w-4" strokeWidth={1.75} />
-              Mis Pedidos
+              <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+              <span>Ideas de Diseño</span>
+              <span className="ml-auto rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white uppercase leading-none">
+                Nuevo
+              </span>
+            </Link>
+            <Link
+              href="/contacto"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+            >
+              <Phone className="h-4 w-4" strokeWidth={1.75} />
+              Contacto
             </Link>
           </div>
 
@@ -170,8 +240,8 @@ export function MobileNav({ categories = [], open, onOpenChange: setOpen }: Mobi
 
           <Separator />
 
-          {/* Redes sociales: en celular reemplazan a los botones flotantes */}
-          <div className="flex items-center justify-center gap-3 pb-4">
+          {/* Redes sociales */}
+          <div className="flex items-center justify-center gap-3">
             {socialLinks.map((link) => (
               <a
                 key={link.href}
@@ -191,6 +261,21 @@ export function MobileNav({ categories = [], open, onOpenChange: setOpen }: Mobi
               </a>
             ))}
           </div>
+
+          {/* Cerrar sesión */}
+          {session && (
+            <>
+              <Separator />
+              <button
+                type="button"
+                onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }) }}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                Cerrar Sesión
+              </button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

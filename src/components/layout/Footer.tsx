@@ -12,6 +12,12 @@ interface FooterProduct {
   slug: string
 }
 
+function titleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/(?:^|\s|[-/])\S/g, (c) => c.toUpperCase())
+}
+
 const footerLinks = {
   empresa: [
     { name: "Sobre Nosotros", href: "/contacto" },
@@ -104,7 +110,7 @@ export async function Footer({ products = [] }: { products?: FooterProduct[] }) 
                       href={`/products/${prod.slug}`}
                       className="text-sm text-muted-foreground hover:text-foreground line-clamp-1"
                     >
-                      {prod.name}
+                      {titleCase(prod.name)}
                     </Link>
                   </li>
                 ))

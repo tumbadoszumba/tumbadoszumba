@@ -416,7 +416,13 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
         {/* Cuenta | Logo centrado | COTIZAR (estilo app) */}
         <div className="grid md:hidden grid-cols-[5.5rem_1fr_5.5rem] h-14 items-center">
           <Link
-            href={session ? "/profile" : "/login"}
+            href={
+              mounted && session
+                ? session.user?.role === "ADMIN"
+                  ? "/admin"
+                  : "/profile"
+                : "/login"
+            }
             className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <User className="h-5 w-5 text-primary" strokeWidth={1.75} />

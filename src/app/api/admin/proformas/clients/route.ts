@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { phoneGroupKey } from "@/lib/phones"
 
 export type ProformaClient = {
   key: string
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
     }
     // Los datos más recientes de cada cliente sin cuenta quedan primero.
     for (const p of guestProformas) {
-      const digits = p.contactPhone?.replace(/\D/g, "")
+      const digits = phoneGroupKey(p.contactPhone)
       const key = digits ? `p:${digits}` : `n:${(p.contactName ?? "").toLowerCase()}`
       const existing = clients.get(key)
       if (existing) {

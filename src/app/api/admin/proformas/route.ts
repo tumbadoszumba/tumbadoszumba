@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { isValidPin, verifyPin } from "@/lib/seller-pin"
 import { createProformaWithCode } from "@/lib/proforma-request-code"
+import { normalizeEcuadorPhone } from "@/lib/phones"
 
 const TRASH_RETENTION_DAYS = 30
 
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
       source: "VENDEDOR",
       userId: user?.id ?? null,
       contactName,
-      contactPhone: contactPhone || null,
+      contactPhone: normalizeEcuadorPhone(contactPhone),
       contactEmail: contactEmail || null,
       contactDocument: contactDocument || null,
       createdBySellerName: seller.name,

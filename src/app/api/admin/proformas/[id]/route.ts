@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { computeAdjustment } from "@/lib/proforma-totals"
+import { normalizeEcuadorPhone } from "@/lib/phones"
 
 type Params = Promise<{ id: string }>
 
@@ -133,9 +134,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
       )
     }
 
+    const updateData = {
+      ...parsed.data,
+      ...(parsed.data.contactPhone !== undefined
+        ? { contactPhone: normalizeEcuadorPhone(parsed.data.contactPhone) }
+        : {}),
+    }
     const proforma = await prisma.proforma.update({
       where: { id },
-      data: parsed.data,
+      data: updateData,
     })
 
     return NextResponse.json({

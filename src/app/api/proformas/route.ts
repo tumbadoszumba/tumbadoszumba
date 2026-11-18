@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { createProformaWithCode } from "@/lib/proforma-request-code"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
+import { normalizeEcuadorPhone } from "@/lib/phones"
 
 // Sin sesión se limita cuántas proformas puede enviar una misma IP.
 const GUEST_LIMIT = 5
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
       ...origin,
       userId,
       contactName: contactName || null,
-      contactPhone: contactPhone || null,
+      contactPhone: normalizeEcuadorPhone(contactPhone),
       contactEmail: contactEmail || null,
       items: { create: itemsData },
     })
